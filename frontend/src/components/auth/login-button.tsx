@@ -20,8 +20,9 @@ export function LoginButton() {
 
   const handleGoogleLogin = () => {
     setLoading(true)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:4000'
-    window.location.href = `${backendUrl}/auth/google`
+    // const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:4000'
+    const backendUrl= 'https://eduaissist-backend-production.up.railway.app/auth/google'
+    window.location.href = `${backendUrl}`
   }
 
   const handleMicrosoftLogin = () => {
