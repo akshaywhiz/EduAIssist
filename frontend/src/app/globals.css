@@ -4,6 +4,31 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Theme Color Variables */
+:root {
+  /* Admin Theme Colors */
+  --admin-primary: #3B82F6; /* blue-600 */
+  --admin-secondary: #6366F1; /* indigo-600 */
+  --admin-accent: #8B5CF6; /* purple-600 */
+  --admin-primary-50: #EFF6FF; /* blue-50 */
+  --admin-primary-100: #DBEAFE; /* blue-100 */
+  --admin-primary-200: #BFDBFE; /* blue-200 */
+  --admin-secondary-50: #EEF2FF; /* indigo-50 */
+  --admin-secondary-100: #E0E7FF; /* indigo-100 */
+  --admin-secondary-200: #C7D2FE; /* indigo-200 */
+  
+  /* Teacher Theme Colors (Same as Admin for consistency) */
+  --teacher-primary: #3B82F6; /* blue-600 */
+  --teacher-secondary: #6366F1; /* indigo-600 */
+  --teacher-accent: #8B5CF6; /* purple-600 */
+  --teacher-primary-50: #EFF6FF; /* blue-50 */
+  --teacher-primary-100: #DBEAFE; /* blue-100 */
+  --teacher-primary-200: #BFDBFE; /* blue-200 */
+  --teacher-secondary-50: #EEF2FF; /* indigo-50 */
+  --teacher-secondary-100: #E0E7FF; /* indigo-100 */
+  --teacher-secondary-200: #C7D2FE; /* indigo-200 */
+}
+
 * {
   box-sizing: border-box;
   padding: 0;

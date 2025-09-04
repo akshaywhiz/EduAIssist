@@ -9,7 +9,8 @@ import {
   DocumentArrowUpIcon,
   ArrowRightOnRectangleIcon,
   EyeIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  BellAlertIcon
 } from '@heroicons/react/24/outline'
 import { classesAPI, materialsAPI, subjectsAPI } from '@/lib/api'
 import { api } from '@/lib/api'
@@ -20,88 +21,150 @@ import { useDropzone } from 'react-dropzone'
 import { Select } from '@/components/ui/select'
 import { Modal } from '@/components/ui/modal'
 import { QuestionGenerator } from '@/components/teacher/question-generator'
+import { Logo } from '@/components/ui/logo'
 import { examsAPI } from '@/lib/api'
 
 const navigation = [
   { name: 'Dashboard', href: '#', icon: ChartBarIcon, current: true },
   { name: 'Question Papers', href: '#questions', icon: DocumentTextIcon, current: false },
-  { name: 'Evaluations', href: '#evaluations', icon: ClipboardDocumentCheckIcon, current: false },
   { name: 'Study Materials', href: '#upload-study', icon: DocumentArrowUpIcon, current: false },
-  { name: 'Answer Sheets', href: '#upload-answers', icon: ClipboardDocumentCheckIcon, current: false },
 ]
 
 export function TeacherDashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-blue-50 to-gray-100">
+      {/* Decorative orbs for brand consistency */}
+      <div className="pointer-events-none absolute inset-0 opacity-30">
+        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-blue-200 to-indigo-300 blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-br from-cyan-200 to-blue-300 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-gradient-to-br from-indigo-200 to-purple-300 blur-3xl" />
+      </div>
+
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-xl shadow-xl ring-1 ring-blue-100 transform transition-transform duration-300 ease-in-out ${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center px-6 py-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">EduAIssist</h1>
-            <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-              Teacher
-            </span>
+          <div className="flex items-center px-6 py-5 border-b border-blue-100/50">
+            <div className="flex items-center gap-3">
+              <Logo size="md" className="h-8 w-8" />
+              <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-xl font-extrabold tracking-tight text-transparent">
+                EduAIssist
+              </h1>
+            </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-4 space-y-2">
+          <nav className="flex-1 px-4 py-6 space-y-2">
             {navigation.map((item) => (
               <button
                 key={item.name}
-                onClick={() => setActiveTab(item.href.replace('#', '') || 'dashboard')}
-                className={`w-full flex items-center px-4 py-2 text-left rounded-lg transition-colors ${
-                  activeTab === (item.href.replace('#', '') || 'dashboard')
-                    ? 'bg-primary-50 text-primary-700 border-primary-200'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
+                onClick={async () => {
+                  const newTab = item.href.replace("#", "") || "dashboard";
+                  if (newTab !== activeTab) {
+                    setIsTransitioning(true);
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    setActiveTab(newTab);
+                    setIsTransitioning(false);
+                  }
+                  // Close mobile menu on navigation
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 shadow-sm hover:shadow-md group transform hover:scale-[1.02]
+                  ${
+                    activeTab === (item.href.replace("#", "") || "dashboard")
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+                      : "text-gray-600 hover:bg-white/80 hover:shadow-lg"
+                  }`}
               >
-                <item.icon className="mr-3 h-5 w-5" />
+                <item.icon 
+                  className={`mr-3 h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${
+                    activeTab === (item.href.replace("#", "") || "dashboard")
+                      ? "text-white"
+                      : "text-gray-500 group-hover:text-blue-600"
+                  }`} 
+                />
                 {item.name}
               </button>
             ))}
           </nav>
 
           {/* User section */}
-          <div className="px-4 py-4 border-t border-gray-200">
+          <div className="px-4 py-5 border-t border-blue-100/50 bg-white/50 backdrop-blur-sm">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
+                  <span className="text-sm font-semibold text-white">
+                    {user?.firstName?.[0]}
+                    {user?.lastName?.[0]}
                   </span>
                 </div>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-semibold text-gray-900">
                   {user?.firstName} {user?.lastName}
                 </p>
                 <p className="text-xs text-gray-500">{user?.email}</p>
+                <span className="text-xs text-gray-500">
+                  Teacher
+                </span>
               </div>
             </div>
             <button
               onClick={logout}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+              className="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-md rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
             >
-              <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4" />
+              <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4 hover:text-red-600 transition-colors duration-300" />
               Sign out
             </button>
           </div>
         </div>
       </div>
 
+      {/* Mobile header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white/90 backdrop-blur-xl shadow-sm border-b border-blue-100/50">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div className="flex items-center gap-2">
+            <Logo size="sm" className="h-6 w-6" />
+            <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-lg font-extrabold tracking-tight text-transparent">
+              EduAIssist
+            </h1>
+          </div>
+          <div></div>
+        </div>
+      </div>
+
       {/* Main content */}
-      <div className="pl-64">
-        <main className="py-6">
+      <div className="lg:pl-64 relative z-10">
+        <main className="pt-20 lg:pt-8 pb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
             {activeTab === 'dashboard' && <DashboardContent />}
             {activeTab === 'questions' && <QuestionPapersContent />}
-            {activeTab === 'evaluations' && <EvaluationsContent />}
             {activeTab === 'upload-study' && <UploadStudyMaterialsContent />}
-            {activeTab === 'upload-answers' && <UploadAnswerSheetsContent />}
+            </div>
           </div>
         </main>
       </div>
@@ -117,86 +180,139 @@ function DashboardContent() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Teacher Dashboard</h1>
-      
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <div className="card p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <DocumentTextIcon className="h-8 w-8 text-primary-600" />
+      {/* Page Header */}
+      <div className="mb-6 lg:mb-8">
+        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur">
+          <ChartBarIcon className="h-4 w-4 lg:h-5 lg:w-5 text-blue-600" />
+          <span className="text-gray-700">Teacher Control Center</span>
+            </div>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent">
+          Teacher Dashboard
+        </h1>
+        <p className="mt-2 text-sm lg:text-base text-gray-600">
+          Create question papers, manage study materials, and track your teaching progress.
+        </p>
+        </div>
+        
+      {/* Stats cards */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+        {/* Question Papers Count */}
+        <div className="group relative overflow-hidden rounded-xl bg-white p-6 shadow-sm ring-1 ring-blue-200 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative flex items-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300">
+              <DocumentTextIcon className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Question Papers</p>
-              <p className="text-2xl font-bold text-gray-900">12</p>
+              <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Question Papers</p>
+              <p className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">12</p>
             </div>
           </div>
         </div>
         
-        <div className="card p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <ClipboardDocumentCheckIcon className="h-8 w-8 text-green-600" />
+        {/* Classes Count */}
+        <div className="group relative overflow-hidden rounded-xl bg-white p-6 shadow-sm ring-1 ring-blue-200 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative flex items-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 group-hover:bg-indigo-200 transition-colors duration-300">
+              <ChartBarIcon className="h-6 w-6 text-indigo-600 group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Evaluations</p>
-              <p className="text-2xl font-bold text-gray-900">45</p>
+              <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Classes</p>
+              <p className="text-2xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{classesCount ?? "..."}</p>
             </div>
           </div>
         </div>
         
-        <div className="card p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <ChartBarIcon className="h-8 w-8 text-yellow-600" />
+        {/* Uploads Count */}
+        <div className="group relative overflow-hidden rounded-xl bg-white p-6 shadow-sm ring-1 ring-blue-200 hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative flex items-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300">
+              <DocumentArrowUpIcon className="h-6 w-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Classes</p>
-              <p className="text-2xl font-bold text-gray-900">{classesCount ?? '—'}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="card p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <DocumentArrowUpIcon className="h-8 w-8 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Uploads</p>
-              <p className="text-2xl font-bold text-gray-900">8</p>
+              <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Uploads</p>
+              <p className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">8</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activities</h3>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-green-400 rounded-full"></div>
-              <p className="text-sm text-gray-600">Math quiz evaluated for Class 10-A</p>
-              <span className="text-xs text-gray-400">1h ago</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Recent Activities */}
+        <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-blue-200 hover:shadow-md transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+              <ClipboardDocumentCheckIcon className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full"></div>
+            <h3 className="text-lg font-semibold text-gray-900">Recent Activities</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+              <div className="min-w-0 flex-1">
               <p className="text-sm text-gray-600">Generated Physics question paper</p>
               <span className="text-xs text-gray-400">3h ago</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-yellow-400 rounded-full"></div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-indigo-400 rounded-full mt-2"></div>
+              <div className="min-w-0 flex-1">
               <p className="text-sm text-gray-600">Uploaded Chapter 5 materials</p>
               <span className="text-xs text-gray-400">5h ago</span>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-gray-600">Created Math worksheet for Class 9-B</p>
+                <span className="text-xs text-gray-400">1d ago</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="card p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <button className="w-full btn-primary">Generate Question Paper</button>
-            <button className="w-full btn-secondary">Upload Study Material</button>
-            <button className="w-full btn-secondary">Review Evaluations</button>
+        {/* Notice Board */}
+        <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-blue-200 hover:shadow-md transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+              <BellAlertIcon className="h-6 w-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Notice Board</h3>
+          </div>
+        <div className="space-y-4">
+          <div className="border-l-4 border-indigo-500 pl-4 py-3 bg-gradient-to-r from-indigo-50 to-indigo-50/50 rounded-r-xl shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+              <span className="text-xs font-medium text-indigo-600 uppercase tracking-wide">Coming Soon</span>
+            </div>
+            <p className="text-sm font-semibold text-indigo-800">
+              🎯 <strong>Student Evaluations</strong> - AI-powered automated grading and evaluation system for answer sheets with personalized feedback.
+            </p>
+          </div>
+          
+          <div className="border-l-4 border-green-500 pl-4 py-3 bg-gradient-to-r from-green-50 to-green-50/50 rounded-r-xl shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-xs font-medium text-green-600 uppercase tracking-wide">Upcoming Feature</span>
+            </div>
+            <p className="text-sm font-semibold text-green-800">
+              📝 <strong>Answer Sheet Management</strong> - Upload and organize student answer sheets for seamless evaluation workflow.
+            </p>
+          </div>
+          
+          <div className="border-l-4 border-purple-500 pl-4 py-3 bg-gradient-to-r from-purple-50 to-purple-50/50 rounded-r-xl shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span className="text-xs font-medium text-purple-600 uppercase tracking-wide">Enhancement</span>
+            </div>
+            <p className="text-sm font-semibold text-purple-800">
+              📊 <strong>Advanced Analytics</strong> - Detailed performance insights and progress tracking for individual students and classes.
+            </p>
+          </div>
           </div>
         </div>
       </div>
@@ -213,28 +329,37 @@ function QuestionPapersContent() {
   const [loadingView, setLoadingView] = useState(false)
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Question Papers</h1>
-        <button className="btn-primary">Generate New Paper</button>
+      {/* Page Header */}
+      <div className="mb-6 lg:mb-8">
+        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur">
+          <DocumentTextIcon className="h-4 w-4 lg:h-5 lg:w-5 text-blue-600" />
+          <span className="text-gray-700">Question Paper Generator</span>
+        </div>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent">
+          Question Papers
+        </h1>
+        <p className="mt-2 text-sm lg:text-base text-gray-600">
+          Generate AI-powered question papers and manage your exam content.
+        </p>
       </div>
 
       <QuestionGenerator examId="demo-exam-id" />
 
-      <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="px-6 pt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h2 className="text-base font-semibold text-gray-900">Generated Papers</h2>
-          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search by title" className="w-full md:w-80 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+      <div className="mt-6 rounded-xl lg:rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-green-100">
+        <div className="px-4 sm:px-6 pt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <h2 className="text-base sm:text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Generated Papers</h2>
+          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search by title" className="w-full md:w-80 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200" />
         </div>
-        <div className="px-6 py-4 overflow-x-auto">
+        <div className="px-4 sm:px-6 py-4 overflow-x-auto">
           <table className="min-w-full table-fixed border border-gray-200 rounded-lg overflow-hidden">
             <thead>
               <tr>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">S. No.</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Title</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Class</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Subject</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Total Marks</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2" />
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">S. No.</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Title</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Class</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Subject</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Total Marks</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2" />
               </tr>
             </thead>
             <tbody className="bg-white">
@@ -247,12 +372,15 @@ function QuestionPapersContent() {
                   <td className="border-b border-gray-100 px-3 py-2 text-sm text-gray-700">{e.totalMarks}</td>
                   <td className="border-b border-gray-100 px-3 py-2 text-right text-sm">
                     <button
-                      className="btn-secondary"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-blue-700 ring-1 ring-blue-200 bg-blue-50 hover:bg-blue-100 transition-all duration-200"
                       onClick={() => {
                         window.open(`/questions/preview/${e.id}`, '_blank', 'noopener,noreferrer')
                       }}
+                      title="View Question Paper"
+                      aria-label="View Question Paper"
                     >
-                      View
+                      <EyeIcon className="h-4 w-4" />
+                      <span className="sr-only">View</span>
                     </button>
                   </td>
                 </tr>
@@ -314,50 +442,6 @@ function QuestionPapersContent() {
   )
 }
 
-function EvaluationsContent() {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Student Evaluations</h1>
-        <button className="btn-primary">Start New Evaluation</button>
-      </div>
-      
-      <div className="card p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">AI-Assisted Evaluation</h3>
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-          <p className="text-sm text-green-800">
-            Upload handwritten answer sheets and let AI evaluate them. You can review and override 
-            AI scores to ensure accuracy and provide personalized feedback.
-          </p>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-medium text-gray-900">Math Quiz - Class 10-A</h4>
-              <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                Pending Review
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 mb-3">25 students • AI Evaluation: 92% complete</p>
-            <button className="text-sm btn-primary">Review Evaluations</button>
-          </div>
-          
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-medium text-gray-900">Physics Test - Class 11-B</h4>
-              <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                Completed
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 mb-3">30 students • Evaluation completed</p>
-            <button className="text-sm btn-secondary">View Reports</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function UploadStudyMaterialsContent() {
   const { user } = useAuth()
@@ -391,20 +475,24 @@ function UploadStudyMaterialsContent() {
   const [selectedSubject, setSelectedSubject] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   // Subjects should be independent of class selection
   const allSubjects = useMemo(() => subjects || [], [subjects])
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!file || !selectedClass || !selectedSubject) {
       toast.error('Please select class, subject, and file')
       return
     }
-    const t = toast.loading('Uploading...')
+    
+    setSubmitting(true)
+    try {
+      const t = toast.loading('Uploading study material...')
     uploadMutation.mutate({ file, classId: selectedClass, subjectId: selectedSubject }, {
       onSuccess: () => {
-        toast.success('Uploaded study material', { id: t })
+          toast.success('Study material uploaded successfully!', { id: t })
         setFile(null)
         setSelectedClass('')
         setSelectedSubject('')
@@ -412,8 +500,15 @@ function UploadStudyMaterialsContent() {
         // Refresh list to show the new row immediately
         refetch()
       },
-      onError: () => { toast.error('Upload failed', { id: t }) },
+        onError: () => { 
+          toast.error('Failed to upload study material. Please try again.', { id: t })
+        },
     })
+    } catch (error) {
+      toast.error('Failed to upload study material. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const onDrop = (accepted: File[]) => {
@@ -425,22 +520,31 @@ function UploadStudyMaterialsContent() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight text-gray-900 mb-6">Upload Study Materials</h1>
-      {/**
-       * Upload section commented per requirement. The upload flow is still available via the modal.
-       *
-       * <div className="rounded-2xl border border-gray-200 bg-white shadow-sm"> ... </div>
-       */}
+      {/* Page Header */}
+      <div className="mb-6 lg:mb-8">
+        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur">
+          <DocumentArrowUpIcon className="h-4 w-4 lg:h-5 lg:w-5 text-blue-600" />
+          <span className="text-gray-700">Study Material Manager</span>
+        </div>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent">
+          Study Materials
+        </h1>
+        <p className="mt-2 text-sm lg:text-base text-gray-600">
+          Upload, organize, and manage educational content for your classes.
+        </p>
+      </div>
 
-      <div className="mt-8 rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="px-6 pt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <button onClick={() => setModalOpen(true)} className="btn-primary w-full md:w-auto">Upload New</button>
+      <div className="mt-8 rounded-xl lg:rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100">
+        <div className="px-4 sm:px-6 pt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <button onClick={() => setModalOpen(true)} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 w-full md:w-auto">
+            Upload New Material
+          </button>
           <div className="w-full md:w-auto">
             <input
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(1); }}
               placeholder="Search by file name"
-              className="w-full md:w-80 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="w-full md:w-80 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </div>
         </div>
@@ -484,12 +588,12 @@ function UploadStudyMaterialsContent() {
           <table className="min-w-full table-fixed border border-gray-200 rounded-lg overflow-hidden">
             <thead>
               <tr>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">S. No.</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Class</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Subject</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">File name</th>
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2" />
-                <th className="border-b border-gray-200 bg-gray-50 px-3 py-2" />
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">S. No.</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Class</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Subject</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">File name</th>
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2" />
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2" />
               </tr>
             </thead>
             <tbody className="bg-white">
@@ -501,19 +605,25 @@ function UploadStudyMaterialsContent() {
                   <td className="border-b border-gray-100 px-3 py-2 text-sm text-gray-700">{m.originalName ?? '-'}</td>
                   <td className="border-b border-gray-100 px-3 py-2 text-right text-sm">
                     <a
-                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-indigo-700 ring-1 ring-indigo-200 bg-indigo-50 hover:bg-indigo-100 mr-2"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-blue-700 ring-1 ring-blue-200 bg-blue-50 hover:bg-blue-100 mr-2 transition-all duration-200"
                       href={m.pdfCloudUrl}
                       target="_blank"
                       rel="noreferrer"
+                      title="View Study Material"
+                      aria-label="View Study Material"
                     >
-                      <EyeIcon className="h-4 w-4" /> View
+                      <EyeIcon className="h-4 w-4" />
+                      <span className="sr-only">View</span>
                     </a>
                     <a
                       href={m.pdfCloudUrl}
                       download
-                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-indigo-700 ring-1 ring-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-all duration-200"
+                      title="Download Study Material"
+                      aria-label="Download Study Material"
                     >
-                      <ArrowDownTrayIcon className="h-4 w-4" /> Download
+                      <ArrowDownTrayIcon className="h-4 w-4" />
+                      <span className="sr-only">Download</span>
                     </a>
                   </td>
                 </tr>
@@ -610,14 +720,24 @@ function UploadStudyMaterialsContent() {
             )}
             {uploadMutation.isLoading && (
               <div className="mt-3 h-2 w-full rounded bg-gray-100">
-                <div className="h-2 rounded bg-indigo-600 transition-all" style={{ width: `${progress}%` }} />
+                <div className="h-2 rounded bg-gradient-to-r from-blue-600 to-indigo-600 transition-all" style={{ width: `${progress}%` }} />
               </div>
             )}
           </div>
           <div className="flex items-center justify-end gap-2 pt-2">
-            <button type="button" onClick={() => setModalOpen(false)} className="btn-secondary">Cancel</button>
-            <button type="button" onClick={() => { setSelectedClass(''); setSelectedSubject(''); setFile(null); }} className="btn-secondary">Reset</button>
-            <button type="submit" className="btn-primary">Upload</button>
+            <button type="button" onClick={() => setModalOpen(false)} className="bg-white text-gray-700 font-semibold rounded-xl px-6 py-2 shadow-lg ring-1 ring-gray-200 hover:bg-gray-50 transition-all duration-300">
+              Cancel
+            </button>
+            <button type="button" onClick={() => { setSelectedClass(''); setSelectedSubject(''); setFile(null); }} className="bg-white text-gray-700 font-semibold rounded-xl px-6 py-2 shadow-lg ring-1 ring-gray-200 hover:bg-gray-50 transition-all duration-300">
+              Reset
+            </button>
+            <button 
+              type="submit" 
+              disabled={!selectedClass.trim() || !selectedSubject.trim() || !file || submitting}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl px-8 py-2 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl transform hover:scale-[1.02]"
+            >
+              {submitting ? 'Uploading...' : 'Upload'}
+            </button>
           </div>
         </form>
       </Modal>
@@ -625,65 +745,3 @@ function UploadStudyMaterialsContent() {
   )
 }
 
-function UploadAnswerSheetsContent() {
-  const uploadMutation = useMutation(async (payload: { file: File }) => {
-    const form = new FormData()
-    form.append('file', payload.file)
-    return (await materialsAPI.uploadAnswers(form)).data
-  })
-
-  const [file, setFile] = useState<File | null>(null)
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!file) {
-      toast.error('Please choose a file')
-      return
-    }
-    const t = toast.loading('Uploading...')
-    uploadMutation.mutate({ file }, {
-      onSuccess: () => {
-        toast.success('Uploaded answer sheets', { id: t })
-        setFile(null)
-      },
-      onError: () => { toast.error('Upload failed', { id: t }) },
-    })
-  }
-
-  const onDrop = (accepted: File[]) => {
-    if (accepted?.[0]) setFile(accepted[0])
-  }
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'application/pdf': ['.pdf'], 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'] }, multiple: false, maxSize: 10 * 1024 * 1024 })
-
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold tracking-tight text-gray-900 mb-6">Upload Answer Sheets</h1>
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-100 px-6 py-4">
-          <h2 className="text-base font-semibold text-gray-900">Files</h2>
-          <p className="text-sm text-gray-500">Upload scanned answer sheets for AI-assisted evaluation.</p>
-        </div>
-        <form onSubmit={submit} className="px-6 py-6 grid grid-cols-1 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">File</label>
-            <div {...getRootProps()} className={`flex h-40 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed ${isDragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 bg-gray-50'} px-4 text-center transition-colors`}>
-              <input {...getInputProps()} />
-              <div>
-                <p className="text-sm text-gray-600">{isDragActive ? 'Drop the file here…' : 'Drag & drop file here, or click to browse'}</p>
-                <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG up to 10MB</p>
-                {file && (
-                  <p className="mt-3 inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-700 shadow ring-1 ring-gray-200">{file.name}</p>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
-            <button type="submit" className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled={uploadMutation.isLoading}>
-              {uploadMutation.isLoading ? 'Uploading…' : 'Upload'}
-            </button>
-        </div>
-        </form>
-      </div>
-    </div>
-  )
-}
