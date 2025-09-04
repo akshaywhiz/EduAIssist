@@ -32,6 +32,7 @@ export function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-blue-50 to-gray-100">
@@ -42,8 +43,18 @@ export function AdminDashboard() {
         <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-gradient-to-br from-purple-200 to-pink-300 blur-3xl animate-float" style={{ animationDelay: '6s' }} />
       </div>
 
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-xl shadow-xl ring-1 ring-blue-100">
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-xl shadow-xl ring-1 ring-blue-100 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:static lg:transform-none`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-blue-100/50">
@@ -68,6 +79,8 @@ export function AdminDashboard() {
                     setActiveTab(newTab);
                     setIsTransitioning(false);
                   }
+                  // Close mobile menu on navigation
+                  setIsMobileMenuOpen(false);
                 }}
                 className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 shadow-sm hover:shadow-md group transform hover:scale-[1.02]
                   ${
@@ -117,10 +130,30 @@ export function AdminDashboard() {
         </div>
       </div>
 
+      {/* Mobile header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white/90 backdrop-blur-xl shadow-sm border-b border-blue-100/50">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-lg font-extrabold tracking-tight text-transparent">
+            EduAIssist
+          </h1>
+          <span className="px-2 py-1 text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full shadow-md">
+            Admin
+          </span>
+        </div>
+      </div>
+
       {/* Main content */}
-      <div className="pl-64 relative z-10">
-        <main className="py-8">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="lg:pl-64 relative z-10">
+        <main className="pt-20 lg:pt-8 pb-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
               {activeTab === "dashboard" && <DashboardContent />}
               {activeTab === "teachers" && <TeachersContent />}
@@ -163,103 +196,103 @@ function DashboardContent() {
   return (
     <div className="animate-slide-in-up">
       {/* Page Header */}
-      <div className="mb-8">
-        <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
-          <ChartBarIcon className="h-5 w-5 text-indigo-600" />
+      <div className="mb-6 lg:mb-8">
+        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
+          <ChartBarIcon className="h-4 w-4 lg:h-5 lg:w-5 text-indigo-600" />
           <span className="text-gray-700">Admin Control Center</span>
         </div>
-        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
           Dashboard
         </h1>
-        <p className="mt-2 text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+        <p className="mt-2 text-sm lg:text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
           Monitor your institution's performance and manage educational resources.
         </p>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-10 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4 mb-8 lg:mb-10 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
         {/* Teachers Count */}
-        <div className="group p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex items-center hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300">
-            <UserGroupIcon className="h-7 w-7 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
+        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row items-center hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mr-4">
+            <UserGroupIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Total Teachers</p>
-            <p className="text-3xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <div className="text-center sm:text-left">
+            <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Total Teachers</p>
+            <p className="text-lg sm:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {teacherCount ?? "..."}
             </p>
           </div>
         </div>
 
         {/* Classes Count */}
-        <div className="group p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex items-center hover:shadow-2xl hover:shadow-green-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 group-hover:bg-green-200 transition-colors duration-300">
-            <AcademicCapIcon className="h-7 w-7 text-green-600 group-hover:scale-110 transition-transform duration-300" />
+        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row items-center hover:shadow-2xl hover:shadow-green-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-green-100 group-hover:bg-green-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mr-4">
+            <AcademicCapIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-green-600 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Active Classes</p>
-            <p className="text-3xl font-semibold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+          <div className="text-center sm:text-left">
+            <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Active Classes</p>
+            <p className="text-lg sm:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
               {classesCount ?? "..."}
             </p>
           </div>
         </div>
 
         {/* Exams Count */}
-        <div className="group p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex items-center hover:shadow-2xl hover:shadow-yellow-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-100 group-hover:bg-yellow-200 transition-colors duration-300">
-            <ChartBarIcon className="h-7 w-7 text-yellow-600 group-hover:scale-110 transition-transform duration-300" />
+        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row items-center hover:shadow-2xl hover:shadow-yellow-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-yellow-100 group-hover:bg-yellow-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mr-4">
+            <ChartBarIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-yellow-600 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Exams This Month</p>
-            <p className="text-3xl font-semibold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">8</p>
+          <div className="text-center sm:text-left">
+            <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Exams This Month</p>
+            <p className="text-lg sm:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">8</p>
           </div>
         </div>
 
         {/* System Status */}
-        <div className="group p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex items-center hover:shadow-2xl hover:shadow-purple-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300">
-            <CogIcon className="h-7 w-7 text-purple-600 group-hover:scale-110 transition-transform duration-300 animate-gentle-pulse" />
+        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row items-center hover:shadow-2xl hover:shadow-purple-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mr-4">
+            <CogIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-purple-600 group-hover:scale-110 transition-transform duration-300 animate-gentle-pulse" />
           </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">System Status</p>
-            <p className="text-3xl font-medium bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Active</p>
+          <div className="text-center sm:text-left">
+            <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">System Status</p>
+            <p className="text-lg sm:text-2xl lg:text-3xl font-medium bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Active</p>
           </div>
         </div>
       </div>
 
       {/* Notice Board */}
-      <div className="p-8 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
-            <BellAlertIcon className="h-6 w-6 text-blue-600" />
+      <div className="p-4 sm:p-6 lg:p-8 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
+        <div className="flex items-center gap-3 mb-4 lg:mb-6">
+          <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
+            <BellAlertIcon className="h-5 w-5 lg:h-6 lg:w-6 text-blue-600" />
           </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Notice Board</h2>
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Notice Board</h2>
         </div>
-        <div className="space-y-4">
-          <div className="group border-l-4 border-blue-500 pl-6 py-4 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="group border-l-4 border-blue-500 pl-3 sm:pl-4 lg:pl-6 py-3 sm:py-4 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-r-xl lg:rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-gentle-pulse"></div>
               <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">Important Update</span>
             </div>
-            <p className="text-sm font-semibold text-blue-800 group-hover:text-blue-900 transition-colors duration-300">
+            <p className="text-xs sm:text-sm font-semibold text-blue-800 group-hover:text-blue-900 transition-colors duration-300">
               System maintenance scheduled for 2025-09-15 at 3:00 AM PST.
             </p>
           </div>
-          <div className="group border-l-4 border-green-500 pl-6 py-4 bg-gradient-to-r from-green-50 to-green-50/50 rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
+          <div className="group border-l-4 border-green-500 pl-3 sm:pl-4 lg:pl-6 py-3 sm:py-4 bg-gradient-to-r from-green-50 to-green-50/50 rounded-r-xl lg:rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-gentle-pulse" style={{ animationDelay: '1s' }}></div>
               <span className="text-xs font-medium text-green-600 uppercase tracking-wide">Feature Release</span>
             </div>
-            <p className="text-sm font-semibold text-green-800 group-hover:text-green-900 transition-colors duration-300">
+            <p className="text-xs sm:text-sm font-semibold text-green-800 group-hover:text-green-900 transition-colors duration-300">
               Subject management will be available soon!
             </p>
           </div>
-          <div className="group border-l-4 border-yellow-500 pl-6 py-4 bg-gradient-to-r from-yellow-50 to-yellow-50/50 rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
+          <div className="group border-l-4 border-yellow-500 pl-3 sm:pl-4 lg:pl-6 py-3 sm:py-4 bg-gradient-to-r from-yellow-50 to-yellow-50/50 rounded-r-xl lg:rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 bg-yellow-500 rounded-full animate-gentle-pulse" style={{ animationDelay: '2s' }}></div>
               <span className="text-xs font-medium text-yellow-600 uppercase tracking-wide">Reminder</span>
             </div>
-            <p className="text-sm font-semibold text-yellow-800 group-hover:text-yellow-900 transition-colors duration-300">
+            <p className="text-xs sm:text-sm font-semibold text-yellow-800 group-hover:text-yellow-900 transition-colors duration-300">
               Teacher training session on 2025-09-01 at 10:00 AM.
             </p>
           </div>
@@ -321,21 +354,21 @@ function TeachersContent() {
   return (
     <div className="space-y-8 animate-slide-in-up">
       {/* Header */}
-      <div className="mb-8">
-        <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
-          <UserGroupIcon className="h-5 w-5 text-indigo-600" />
+      <div className="mb-6 lg:mb-8">
+        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
+          <UserGroupIcon className="h-4 w-4 lg:h-5 lg:w-5 text-indigo-600" />
           <span className="text-gray-700">Teacher Management</span>
         </div>
-        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
           Teachers
         </h1>
-        <p className="mt-2 text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+        <p className="mt-2 text-sm lg:text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
           Manage teaching staff and monitor their activities across the platform.
         </p>
       </div>
 
       {/* Add Teacher Form */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 w-full max-w-6xl hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl lg:rounded-2xl shadow-xl ring-1 ring-blue-100 p-4 sm:p-6 lg:p-8 w-full max-w-6xl hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
         <div className="flex items-center gap-3 mb-8">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
             <UserGroupIcon className="h-6 w-6 text-blue-600" />
