@@ -458,6 +458,9 @@ function UploadStudyMaterialsContent() {
   ).data)
   const [progress, setProgress] = useState<number>(0)
   const uploadMutation = useMutation(async (payload: { file: File; classId: string; subjectId: string }) => {
+    console.log('Starting upload with payload:', payload);
+    console.log('User:', user);
+    
     const form = new FormData()
     form.append('file', payload.file)
     form.append('teacherId', (user as any)?.id || '')
@@ -465,10 +468,31 @@ function UploadStudyMaterialsContent() {
     const subjectName = (subjects || []).find((s: any) => s.id === payload.subjectId)?.name || payload.subjectId
     form.append('class', className)
     form.append('subject', subjectName)
-    //form.append('vectorDbCollectionId', `col_${Date.now()}`)
-    return (await materialsAPI.uploadStudy(form, (e) => {
-      if (e.total) setProgress(Math.round((e.loaded * 100) / e.total))
-    })).data
+    form.append('vectorDbCollectionId', `col_${Date.now()}`)
+    
+    console.log('FormData contents:');
+    console.log('- file:', payload.file.name, payload.file.size);
+    console.log('- teacherId:', (user as any)?.id || '');
+    console.log('- class:', className);
+    console.log('- subject:', subjectName);
+    console.log('- vectorDbCollectionId:', `col_${Date.now()}`);
+    
+    try {
+      const result = await materialsAPI.uploadStudy(form, (e) => {
+        if (e.total) setProgress(Math.round((e.loaded * 100) / e.total))
+      });
+      console.log('Upload successful:', result);
+      return result.data;
+    } catch (error) {
+      console.error('Upload failed:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      throw error;
+    }
   })
 
   const [selectedClass, setSelectedClass] = useState('')
@@ -478,10 +502,32 @@ function UploadStudyMaterialsContent() {
   const [submitting, setSubmitting] = useState(false)
 
   // Subjects should be independent of class selection
-  const allSubjects = useMemo(() => subjects || [], [subjects])
+  const allSubjects = useMemo(() => {
+    const validSubjects = (subjects || []).filter((s: any) => s && s.id && s.name);
+    console.log('Raw subjects:', subjects);
+    console.log('Valid subjects after filtering:', validSubjects);
+    return validSubjects;
+  }, [subjects])
+  
+  // Debug: Log state changes
+  useEffect(() => {
+    console.log('State changed - selectedClass:', selectedClass, 'selectedSubject:', selectedSubject, 'file:', file);
+    console.log('Button should be enabled:', !!(selectedClass && selectedSubject && file && !submitting));
+    console.log('Classes available:', (classes || []).map((c: any) => ({ id: c.id, name: c.name })));
+    console.log('Subjects available:', (allSubjects || []).map((s: any) => ({ id: s.id, name: s.name })));
+  }, [selectedClass, selectedSubject, file, submitting, classes, allSubjects])
+  
+  // Computed property for button state
+  const isFormValid = useMemo(() => {
+    const valid = !!(selectedClass && selectedSubject && file && !submitting);
+    console.log('Form validation check:', { selectedClass, selectedSubject, file: !!file, submitting, valid });
+    return valid;
+  }, [selectedClass, selectedSubject, file, submitting])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    console.log('Submit called with:', { selectedClass, selectedSubject, file: file?.name });
+    
     if (!file || !selectedClass || !selectedSubject) {
       toast.error('Please select class, subject, and file')
       return
@@ -490,23 +536,29 @@ function UploadStudyMaterialsContent() {
     setSubmitting(true)
     try {
       const t = toast.loading('Uploading study material...')
-    uploadMutation.mutate({ file, classId: selectedClass, subjectId: selectedSubject }, {
-      onSuccess: () => {
+      uploadMutation.mutate({ file, classId: selectedClass, subjectId: selectedSubject }, {
+        onSuccess: (data) => {
+          console.log('Upload mutation success:', data);
           toast.success('Study material uploaded successfully!', { id: t })
-        setFile(null)
-        setSelectedClass('')
-        setSelectedSubject('')
-        setModalOpen(false)
-        // Refresh list to show the new row immediately
-        refetch()
-      },
-        onError: () => { 
-          toast.error('Failed to upload study material. Please try again.', { id: t })
+          setFile(null)
+          setSelectedClass('')
+          setSelectedSubject('')
+          setModalOpen(false)
+          // Refresh list to show the new row immediately
+          refetch()
+          setSubmitting(false)
         },
-    })
-    } catch (error) {
-      toast.error('Failed to upload study material. Please try again.')
-    } finally {
+        onError: (error: any) => { 
+          console.error('Upload mutation error:', error);
+          const errorMessage = error?.response?.data?.message || error?.message || 'Failed to upload study material. Please try again.';
+          toast.error(errorMessage, { id: t })
+          setSubmitting(false)
+        },
+      })
+    } catch (error: any) {
+      console.error('Submit function error:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to upload study material. Please try again.';
+      toast.error(errorMessage)
       setSubmitting(false)
     }
   }
@@ -682,14 +734,21 @@ function UploadStudyMaterialsContent() {
         </div>
       </div>
       
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Upload New Study Material">
+      <Modal open={modalOpen} onClose={() => {
+        console.log('Modal closing, resetting form');
+        setModalOpen(false);
+        // Don't reset values here as user might want to keep selections
+      }} title="Upload New Study Material">
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
               <Select
                 value={selectedClass}
-                onChange={setSelectedClass}
+                onChange={(value) => {
+                  console.log('Class selected:', value);
+                  setSelectedClass(value);
+                }}
                 placeholder="Select Class"
                 options={(classes || []).map((c: any) => ({ value: c.id, label: c.name }))}
               />
@@ -698,7 +757,11 @@ function UploadStudyMaterialsContent() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
               <Select
                 value={selectedSubject}
-                onChange={setSelectedSubject}
+                onChange={(value) => {
+                  console.log('Subject selected:', value, 'Type:', typeof value);
+                  console.log('Available subjects:', (allSubjects || []).map((s: any) => ({ value: s.id, label: s.name })));
+                  setSelectedSubject(value);
+                }}
                 placeholder="Select Subject"
                 options={(allSubjects || []).map((s: any) => ({ value: s.id, label: s.name }))}
               />
@@ -706,7 +769,11 @@ function UploadStudyMaterialsContent() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">File</label>
-            <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] || null)} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+            <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => {
+              const selectedFile = e.target.files?.[0] || null;
+              console.log('File selected:', selectedFile);
+              setFile(selectedFile);
+            }} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
             <p className="mt-1 text-xs text-gray-500">PDF, DOC, DOCX up to 10MB</p>
             {file && (
               <div className="mt-2 flex items-center gap-2">
@@ -724,6 +791,7 @@ function UploadStudyMaterialsContent() {
               </div>
             )}
           </div>
+          
           <div className="flex items-center justify-end gap-2 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="bg-white text-gray-700 font-semibold rounded-xl px-6 py-2 shadow-lg ring-1 ring-gray-200 hover:bg-gray-50 transition-all duration-300">
               Cancel
@@ -733,8 +801,13 @@ function UploadStudyMaterialsContent() {
             </button>
             <button 
               type="submit" 
-              disabled={!selectedClass.trim() || !selectedSubject.trim() || !file || submitting}
+              disabled={!isFormValid}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl px-8 py-2 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl transform hover:scale-[1.02]"
+              onClick={() => {
+                console.log('Debug - selectedClass:', selectedClass, 'selectedSubject:', selectedSubject, 'file:', file, 'submitting:', submitting);
+                console.log('Debug - validation check:', !selectedClass || !selectedSubject || !file || submitting);
+                console.log('Debug - isFormValid:', isFormValid);
+              }}
             >
               {submitting ? 'Uploading...' : 'Upload'}
             </button>
