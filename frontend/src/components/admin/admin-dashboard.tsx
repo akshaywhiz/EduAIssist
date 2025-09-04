@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { usersAPI, classesAPI } from "@/lib/api";
 import Cookies from "js-cookie";
 import {
   UserGroupIcon,
@@ -13,23 +14,6 @@ import {
   BellAlertIcon,
 } from "@heroicons/react/24/outline";
 
-// -------------------------
-// API Helper
-// -------------------------
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-
-async function fetcher(endpoint: string, options: RequestInit = {}) {
-  const token = Cookies.get("token");
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
-    ...options,
-  });
-  if (!res.ok) throw new Error(`API Error: ${res.status}`);
-  return res.json();
-}
 
 // -------------------------
 // Navigation Config
@@ -143,12 +127,14 @@ function DashboardContent() {
     async function loadCounts() {
       try {
         // Teachers: API may not expose /teachers/count; fallback to list length
-        const teachers = await fetcher("/users/teachers");
+        const teachersResponse = await usersAPI.getTeachers();
+        const teachers = teachersResponse.data;
         const tCount = Array.isArray(teachers) ? teachers.length : (teachers?.total ?? 0);
         setTeacherCount(tCount);
 
         // Classes: expected to return { total }
-        const classCount = await fetcher("/classes/count");
+        const classCountResponse = await classesAPI.count();
+        const classCount = classCountResponse.data;
         setClassesCount(classCount?.total ?? (typeof classCount === 'number' ? classCount : 0));
       } catch (err) {
         console.error("Failed to fetch counts:", err);
@@ -255,8 +241,8 @@ function TeachersContent() {
   async function loadTeachers() {
     try {
       setLoading(true);
-      const res = await fetcher("/users/teachers");
-      setTeachers(res);
+      const response = await usersAPI.getTeachers();
+      setTeachers(response.data);
     } catch (err) {
       console.error("Failed to fetch teachers:", err);
     } finally {
@@ -266,11 +252,7 @@ function TeachersContent() {
 
   async function addTeacher() {
     try {
-      await fetcher("/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      await usersAPI.create(form);
       setForm({ firstName: "", lastName: "", email: "", role: "teacher" });
       loadTeachers();
     } catch (err) {
@@ -435,8 +417,8 @@ function ClassesContent() {
   async function loadClasses() {
     try {
       setLoading(true);
-      const res = await fetcher("/classes");
-      setClasses(res);
+      const response = await classesAPI.getAll();
+      setClasses(response.data);
     } catch (err) {
       console.error("Failed to fetch classes:", err);
     } finally {
@@ -446,8 +428,8 @@ function ClassesContent() {
 
   async function loadTeachersForDropdown() {
     try {
-      const res = await fetcher("/users/teachers");
-      setTeachers(res);
+      const response = await usersAPI.getTeachers();
+      setTeachers(response.data);
     } catch (err) {
       console.error("Failed to fetch teachers for dropdown:", err);
     }
@@ -455,11 +437,7 @@ function ClassesContent() {
 
   async function addClass() {
     try {
-      await fetcher("/classes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      await classesAPI.create(form);
       setForm({
         name: "",
         description: "",
