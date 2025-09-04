@@ -38,9 +38,9 @@ export function AdminDashboard() {
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-blue-50 to-gray-100">
       {/* Decorative orbs for brand consistency */}
       <div className="pointer-events-none absolute inset-0 opacity-30">
-        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-blue-200 to-indigo-300 blur-3xl animate-float" />
-        <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-br from-cyan-200 to-purple-300 blur-3xl animate-float" style={{ animationDelay: '3s' }} />
-        <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-gradient-to-br from-purple-200 to-pink-300 blur-3xl animate-float" style={{ animationDelay: '6s' }} />
+        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-blue-200 to-indigo-300 blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-br from-cyan-200 to-purple-300 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-gradient-to-br from-purple-200 to-pink-300 blur-3xl" />
       </div>
 
       {/* Mobile menu overlay */}
@@ -52,16 +52,16 @@ export function AdminDashboard() {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-xl shadow-xl ring-1 ring-blue-100 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:static lg:transform-none`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-xl shadow-xl ring-1 ring-blue-100 transform transition-transform duration-300 ease-in-out ${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-blue-100/50">
             <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-xl font-extrabold tracking-tight text-transparent">
               EduAIssist
             </h1>
-            <span className="ml-2 px-3 py-1 text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full shadow-md animate-gentle-pulse">
+            <span className="ml-2 px-3 py-1 text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full shadow-md">
               Admin
             </span>
           </div>
@@ -105,7 +105,7 @@ export function AdminDashboard() {
           <div className="px-4 py-5 border-t border-blue-100/50 bg-white/50 backdrop-blur-sm">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg animate-gentle-pulse">
+                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
                   <span className="text-sm font-semibold text-white">
                     {user?.firstName?.[0]}
                     {user?.lastName?.[0]}
@@ -155,9 +155,9 @@ export function AdminDashboard() {
         <main className="pt-20 lg:pt-8 pb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
-              {activeTab === "dashboard" && <DashboardContent />}
-              {activeTab === "teachers" && <TeachersContent />}
-              {activeTab === "classes" && <ClassesContent />}
+            {activeTab === "dashboard" && <DashboardContent />}
+            {activeTab === "teachers" && <TeachersContent />}
+            {activeTab === "classes" && <ClassesContent />}
             </div>
           </div>
         </main>
@@ -194,29 +194,29 @@ function DashboardContent() {
   }, []);
 
   return (
-    <div className="animate-slide-in-up">
+    <div>
       {/* Page Header */}
       <div className="mb-6 lg:mb-8">
-        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
+        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur">
           <ChartBarIcon className="h-4 w-4 lg:h-5 lg:w-5 text-indigo-600" />
           <span className="text-gray-700">Admin Control Center</span>
         </div>
-        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent">
           Dashboard
         </h1>
-        <p className="mt-2 text-sm lg:text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+        <p className="mt-2 text-sm lg:text-base text-gray-600">
           Monitor your institution's performance and manage educational resources.
         </p>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4 mb-8 lg:mb-10 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4 mb-8 lg:mb-10">
         {/* Teachers Count */}
-        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row items-center hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
-          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mr-4">
+        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mb-3 lg:mr-0 xl:mb-0 xl:mr-4">
             <UserGroupIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <div className="text-center sm:text-left">
+          <div className="text-center sm:text-left lg:text-center xl:text-left">
             <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Total Teachers</p>
             <p className="text-lg sm:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {teacherCount ?? "..."}
@@ -225,11 +225,11 @@ function DashboardContent() {
         </div>
 
         {/* Classes Count */}
-        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row items-center hover:shadow-2xl hover:shadow-green-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
-          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-green-100 group-hover:bg-green-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mr-4">
+        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center hover:shadow-2xl hover:shadow-green-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-green-100 group-hover:bg-green-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mb-3 lg:mr-0 xl:mb-0 xl:mr-4">
             <AcademicCapIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-green-600 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <div className="text-center sm:text-left">
+          <div className="text-center sm:text-left lg:text-center xl:text-left">
             <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Active Classes</p>
             <p className="text-lg sm:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
               {classesCount ?? "..."}
@@ -238,22 +238,22 @@ function DashboardContent() {
         </div>
 
         {/* Exams Count */}
-        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row items-center hover:shadow-2xl hover:shadow-yellow-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
-          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-yellow-100 group-hover:bg-yellow-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mr-4">
+        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center hover:shadow-2xl hover:shadow-yellow-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-yellow-100 group-hover:bg-yellow-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mb-3 lg:mr-0 xl:mb-0 xl:mr-4">
             <ChartBarIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-yellow-600 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <div className="text-center sm:text-left">
+          <div className="text-center sm:text-left lg:text-center xl:text-left">
             <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Exams This Month</p>
             <p className="text-lg sm:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">8</p>
           </div>
         </div>
 
         {/* System Status */}
-        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row items-center hover:shadow-2xl hover:shadow-purple-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
-          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mr-4">
-            <CogIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-purple-600 group-hover:scale-110 transition-transform duration-300 animate-gentle-pulse" />
+        <div className="group p-3 sm:p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center hover:shadow-2xl hover:shadow-purple-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 items-center justify-center rounded-xl lg:rounded-2xl bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300 mb-2 sm:mb-0 sm:mr-3 lg:mb-3 lg:mr-0 xl:mb-0 xl:mr-4">
+            <CogIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <div className="text-center sm:text-left">
+          <div className="text-center sm:text-left lg:text-center xl:text-left">
             <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">System Status</p>
             <p className="text-lg sm:text-2xl lg:text-3xl font-medium bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Active</p>
           </div>
@@ -261,7 +261,7 @@ function DashboardContent() {
       </div>
 
       {/* Notice Board */}
-      <div className="p-4 sm:p-6 lg:p-8 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
+      <div className="p-4 sm:p-6 lg:p-8 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 hover:shadow-2xl transition-all duration-300">
         <div className="flex items-center gap-3 mb-4 lg:mb-6">
           <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
             <BellAlertIcon className="h-5 w-5 lg:h-6 lg:w-6 text-blue-600" />
@@ -271,7 +271,7 @@ function DashboardContent() {
         <div className="space-y-3 sm:space-y-4">
           <div className="group border-l-4 border-blue-500 pl-3 sm:pl-4 lg:pl-6 py-3 sm:py-4 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-r-xl lg:rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-gentle-pulse"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">Important Update</span>
             </div>
             <p className="text-xs sm:text-sm font-semibold text-blue-800 group-hover:text-blue-900 transition-colors duration-300">
@@ -280,7 +280,7 @@ function DashboardContent() {
           </div>
           <div className="group border-l-4 border-green-500 pl-3 sm:pl-4 lg:pl-6 py-3 sm:py-4 bg-gradient-to-r from-green-50 to-green-50/50 rounded-r-xl lg:rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-gentle-pulse" style={{ animationDelay: '1s' }}></div>
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span className="text-xs font-medium text-green-600 uppercase tracking-wide">Feature Release</span>
             </div>
             <p className="text-xs sm:text-sm font-semibold text-green-800 group-hover:text-green-900 transition-colors duration-300">
@@ -289,7 +289,7 @@ function DashboardContent() {
           </div>
           <div className="group border-l-4 border-yellow-500 pl-3 sm:pl-4 lg:pl-6 py-3 sm:py-4 bg-gradient-to-r from-yellow-50 to-yellow-50/50 rounded-r-xl lg:rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-gentle-pulse" style={{ animationDelay: '2s' }}></div>
+              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
               <span className="text-xs font-medium text-yellow-600 uppercase tracking-wide">Reminder</span>
             </div>
             <p className="text-xs sm:text-sm font-semibold text-yellow-800 group-hover:text-yellow-900 transition-colors duration-300">
@@ -352,73 +352,73 @@ function TeachersContent() {
   }
 
   return (
-    <div className="space-y-8 animate-slide-in-up">
+    <div className="space-y-8">
       {/* Header */}
       <div className="mb-6 lg:mb-8">
-        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
+        <div className="mb-4 lg:mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-3 lg:px-4 py-2 text-xs lg:text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur">
           <UserGroupIcon className="h-4 w-4 lg:h-5 lg:w-5 text-indigo-600" />
           <span className="text-gray-700">Teacher Management</span>
         </div>
-        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-2xl lg:text-4xl font-bold tracking-tight text-transparent">
           Teachers
         </h1>
-        <p className="mt-2 text-sm lg:text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+        <p className="mt-2 text-sm lg:text-base text-gray-600">
           Manage teaching staff and monitor their activities across the platform.
         </p>
       </div>
 
       {/* Add Teacher Form */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl lg:rounded-2xl shadow-xl ring-1 ring-blue-100 p-4 sm:p-6 lg:p-8 w-full max-w-6xl hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl lg:rounded-2xl shadow-xl ring-1 ring-blue-100 p-4 sm:p-6 lg:p-8 w-full max-w-6xl hover:shadow-2xl transition-all duration-300">
         <div className="flex items-center gap-3 mb-8">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
             <UserGroupIcon className="h-6 w-6 text-blue-600" />
           </div>
           <h2 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Add New Teacher
-          </h2>
+          Add New Teacher
+        </h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Form Section */}
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* First Name */}
-            <div className="relative">
+          {/* First Name */}
+          <div className="relative">
               <label
                 htmlFor="firstName"
                 className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
               >
                 First Name *
               </label>
-              <input
-                id="firstName"
-                type="text"
-                value={form.firstName}
-                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+            <input
+              id="firstName"
+              type="text"
+              value={form.firstName}
+              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                 className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                 required
               />
-            </div>
+          </div>
 
-            {/* Last Name */}
-            <div className="relative">
+          {/* Last Name */}
+          <div className="relative">
               <label
                 htmlFor="lastName"
                 className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
               >
                 Last Name *
               </label>
-              <input
-                id="lastName"
-                type="text"
-                value={form.lastName}
-                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+            <input
+              id="lastName"
+              type="text"
+              value={form.lastName}
+              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                 className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                 required
               />
             </div>
 
-            </div>
+          </div>
 
             {/* Email - Full width */}
             <div className="relative">
@@ -428,23 +428,23 @@ function TeachersContent() {
               >
                 Email Address *
               </label>
-              <input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+            <input
+              id="email"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                 required
               />
-            </div>
+        </div>
 
-            <button
-              onClick={addTeacher}
+        <button
+          onClick={addTeacher}
               disabled={!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || submitting}
               className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl px-8 py-3 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+        >
               {submitting ? 'Adding Teacher...' : 'Add Teacher'}
-            </button>
+        </button>
           </div>
 
           {/* Illustration Section */}
@@ -521,9 +521,9 @@ function TeachersContent() {
       </div>
 
       {/* Teacher List */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 hover:shadow-2xl transition-all duration-300">
         {loading ? (
-          <p className="text-gray-500 animate-pulse">Loading teachers...</p>
+          <p className="text-gray-500">Loading teachers...</p>
         ) : teachers?.length === 0 ? (
           <div className="flex flex-col items-center py-10 text-gray-500">
             <span className="text-4xl mb-2">📭</span>
@@ -642,23 +642,23 @@ function ClassesContent() {
   }
 
   return (
-    <div className="space-y-8 animate-slide-in-up">
+    <div className="space-y-8">
       {/* Header */}
       <div className="mb-8">
-        <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
+        <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur">
           <AcademicCapIcon className="h-5 w-5 text-indigo-600" />
           <span className="text-gray-700">Class Management</span>
         </div>
-        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
           Classes
         </h1>
-        <p className="mt-2 text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+        <p className="mt-2 text-base text-gray-600">
           Organize classes, assign teachers, and manage academic schedules.
         </p>
       </div>
 
       {/* Add Class Form */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 w-full max-w-6xl hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 w-full max-w-6xl hover:shadow-2xl transition-all duration-300">
         <div className="flex items-center gap-3 mb-8">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
             <AcademicCapIcon className="h-6 w-6 text-blue-600" />
@@ -673,145 +673,145 @@ function ClassesContent() {
           <div className="space-y-6">
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Class Name */}
-              <div className="relative">
+          {/* Class Name */}
+          <div className="relative">
                 <label
                   htmlFor="name"
                   className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
                 >
                   Class Name *
                 </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+            <input
+              id="name"
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                   required
                 />
-              </div>
+          </div>
 
-              {/* Description */}
-              <div className="relative">
+          {/* Description */}
+          <div className="relative">
                 <label
                   htmlFor="description"
                   className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
                 >
                   Description (Optional)
                 </label>
-                <input
-                  id="description"
-                  type="text"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+            <input
+              id="description"
+              type="text"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
                   className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                 />
-              </div>
+          </div>
 
-              {/* Grade */}
-              <div className="relative">
-                <label
-                  htmlFor="grade"
-                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
-                >
+          {/* Grade */}
+          <div className="relative">
+            <label
+              htmlFor="grade"
+              className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+            >
                   Grade *
-                </label>
-                <select
-                  id="grade"
-                  value={form.grade}
-                  onChange={(e) => setForm({ ...form, grade: e.target.value })}
+            </label>
+            <select
+              id="grade"
+              value={form.grade}
+              onChange={(e) => setForm({ ...form, grade: e.target.value })}
                   className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                   required
-                >
-                  <option value="">Select Grade</option>
-                  {grades.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            >
+              <option value="">Select Grade</option>
+              {grades.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              {/* Section */}
-              <div className="relative">
-                <label
-                  htmlFor="section"
-                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
-                >
+          {/* Section */}
+          <div className="relative">
+            <label
+              htmlFor="section"
+              className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+            >
                   Section *
-                </label>
-                <select
-                  id="section"
-                  value={form.section}
-                  onChange={(e) => setForm({ ...form, section: e.target.value })}
+            </label>
+            <select
+              id="section"
+              value={form.section}
+              onChange={(e) => setForm({ ...form, section: e.target.value })}
                   className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                   required
-                >
-                  <option value="">Select Section</option>
-                  {sections.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            >
+              <option value="">Select Section</option>
+              {sections.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              {/* Academic Year */}
-              <div className="relative">
-                <label
-                  htmlFor="academicYear"
-                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
-                >
+          {/* Academic Year */}
+          <div className="relative">
+            <label
+              htmlFor="academicYear"
+              className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+            >
                   Academic Year *
-                </label>
-                <select
-                  id="academicYear"
-                  value={form.academicYear}
-                  onChange={(e) => setForm({ ...form, academicYear: e.target.value })}
+            </label>
+            <select
+              id="academicYear"
+              value={form.academicYear}
+              onChange={(e) => setForm({ ...form, academicYear: e.target.value })}
                   className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                   required
-                >
-                  <option value="">Select Academic Year</option>
-                  {academicYears.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            >
+              <option value="">Select Academic Year</option>
+              {academicYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              {/* Teacher */}
-              <div className="relative">
-                <label
-                  htmlFor="teacherId"
-                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
-                >
+          {/* Teacher */}
+          <div className="relative">
+            <label
+              htmlFor="teacherId"
+              className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+            >
                   Teacher *
-                </label>
-                <select
-                  id="teacherId"
-                  value={form.teacherId}
-                  onChange={(e) => setForm({ ...form, teacherId: e.target.value })}
+            </label>
+            <select
+              id="teacherId"
+              value={form.teacherId}
+              onChange={(e) => setForm({ ...form, teacherId: e.target.value })}
                   className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
                   required
-                >
-                  <option value="">Select Teacher</option>
-                  {teachers.map((teacher) => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.firstName} {teacher.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            >
+              <option value="">Select Teacher</option>
+              {teachers.map((teacher) => (
+                <option key={teacher.id} value={teacher.id}>
+                  {teacher.firstName} {teacher.lastName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-            <button
-              onClick={addClass}
+        <button
+          onClick={addClass}
               disabled={!form.name.trim() || !form.grade || !form.section || !form.academicYear || !form.teacherId || submitting}
               className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl px-8 py-3 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+        >
               {submitting ? 'Adding Class...' : 'Add Class'}
-            </button>
+        </button>
           </div>
 
           {/* Illustration Section */}
@@ -885,9 +885,9 @@ function ClassesContent() {
       </div>
 
       {/* Class List */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 hover:shadow-2xl transition-all duration-300">
         {loading ? (
-          <p className="text-gray-500 animate-pulse">Loading classes...</p>
+          <p className="text-gray-500">Loading classes...</p>
         ) : classes.length === 0 ? (
           <div className="flex flex-col items-center py-10 text-gray-500">
             <span className="text-4xl mb-2">📭</span>
