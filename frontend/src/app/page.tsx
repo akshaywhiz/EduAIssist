@@ -6,6 +6,8 @@ import { AcademicCapIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { AdminDashboard } from '@/components/admin/admin-dashboard'
 import { TeacherDashboard } from '@/components/teacher/teacher-dashboard'
 import FullScreenLoader from '@/components/ui/full-screen-loader'
+import { EducationalScribbles } from '@/components/ui/educational-scribbles'
+import { Logo } from '@/components/ui/logo'
 
 export default function HomePage() {
   const { user, loading } = useAuth()
@@ -19,20 +21,23 @@ export default function HomePage() {
       <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-blue-50 to-gray-100">
         {/* decorative orbs for brand consistency */}
         <div className="pointer-events-none absolute inset-0 opacity-40">
-          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-blue-200 to-indigo-300 blur-3xl" />
-          <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-br from-cyan-200 to-purple-300 blur-3xl" />
+          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-blue-200 to-indigo-300 blur-3xl animate-float" />
+          <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-br from-cyan-200 to-purple-300 blur-3xl animate-float" style={{ animationDelay: '3s' }} />
         </div>
+
+        {/* Educational Scribbles */}
+        <EducationalScribbles />
 
         <div className="relative z-10 mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 items-center gap-10 px-6 py-12 md:grid-cols-2 md:px-10 lg:py-20">
           {/* Brand side */}
-          <div>
-            <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur">
+          <div className="animate-slide-in-up">
+            <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale" style={{ animationDelay: '100ms' }}>
               <SparklesIcon className="h-5 w-5 text-indigo-600" />
               <span className="text-gray-700">AI for modern classrooms</span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow ring-1 ring-blue-100">
-                <AcademicCapIcon className="h-7 w-7 text-blue-600" />
+            <div className="flex items-center gap-3 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow ring-1 ring-blue-100 animate-gentle-pulse">
+                <Logo size="md" />
               </div>
               <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl">
                 EduAIssist
@@ -50,11 +55,11 @@ export default function HomePage() {
           </div>
 
           {/* Sign-in card */}
-          <div className="relative">
-            <div className="relative mx-auto w-full max-w-md rounded-2xl bg-white p-6 shadow-lg ring-1 ring-blue-100">
-              <h2 className="text-center text-xl font-semibold text-gray-900">Sign in to continue</h2>
-              <p className="mt-1 text-center text-sm text-gray-500">Use your school account or try demo accounts</p>
-              <div className="mt-6">
+          <div className="relative animate-slide-in-up" style={{ animationDelay: '500ms' }}>
+            <div className="relative mx-auto w-full max-w-md rounded-2xl bg-white p-8 shadow-xl ring-1 ring-blue-100 transform hover:scale-[1.02] transition-transform duration-300">
+              <h2 className="text-center text-xl font-semibold text-gray-900 animate-fade-in-scale" style={{ animationDelay: '600ms' }}>Sign in to continue</h2>
+              <p className="mt-1 text-center text-sm text-gray-500 animate-fade-in-scale" style={{ animationDelay: '700ms' }}>Use your Google account to access your personalized learning dashboard</p>
+              <div className="mt-8">
                 <LoginButton />
               </div>
             </div>

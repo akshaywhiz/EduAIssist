@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { usersAPI, classesAPI } from "@/lib/api";
 import Cookies from "js-cookie";
+import toast from 'react-hot-toast';
 import {
   UserGroupIcon,
   AcademicCapIcon,
@@ -30,18 +31,26 @@ const navigation = [
 export function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-blue-50 to-gray-100">
+      {/* Decorative orbs for brand consistency */}
+      <div className="pointer-events-none absolute inset-0 opacity-30">
+        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-blue-200 to-indigo-300 blur-3xl animate-float" />
+        <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-br from-cyan-200 to-purple-300 blur-3xl animate-float" style={{ animationDelay: '3s' }} />
+        <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-gradient-to-br from-purple-200 to-pink-300 blur-3xl animate-float" style={{ animationDelay: '6s' }} />
+      </div>
+
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/80 backdrop-blur-xl shadow-2xl border-r border-gray-200">
+      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-xl shadow-xl ring-1 ring-blue-100">
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
-            <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">
+          <div className="flex items-center justify-between px-6 py-5 border-b border-blue-100/50">
+            <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-xl font-extrabold tracking-tight text-transparent">
               EduAIssist
             </h1>
-            <span className="ml-2 px-2 py-1 text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full shadow">
+            <span className="ml-2 px-3 py-1 text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full shadow-md animate-gentle-pulse">
               Admin
             </span>
           </div>
@@ -51,14 +60,20 @@ export function AdminDashboard() {
             {navigation.map((item) => (
               <button
                 key={item.name}
-                onClick={() =>
-                  setActiveTab(item.href.replace("#", "") || "dashboard")
-                }
-                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 shadow-sm hover:shadow-md group
+                onClick={async () => {
+                  const newTab = item.href.replace("#", "") || "dashboard";
+                  if (newTab !== activeTab) {
+                    setIsTransitioning(true);
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    setActiveTab(newTab);
+                    setIsTransitioning(false);
+                  }
+                }}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 shadow-sm hover:shadow-md group transform hover:scale-[1.02]
                   ${
                     activeTab === (item.href.replace("#", "") || "dashboard")
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+                      : "text-gray-600 hover:bg-white/80 hover:shadow-lg"
                   }`}
               >
                 <item.icon
@@ -74,10 +89,10 @@ export function AdminDashboard() {
           </nav>
 
           {/* User section */}
-          <div className="px-4 py-5 border-t border-gray-200 bg-gray-50/80 backdrop-blur-sm">
+          <div className="px-4 py-5 border-t border-blue-100/50 bg-white/50 backdrop-blur-sm">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg animate-gentle-pulse">
                   <span className="text-sm font-semibold text-white">
                     {user?.firstName?.[0]}
                     {user?.lastName?.[0]}
@@ -93,7 +108,7 @@ export function AdminDashboard() {
             </div>
             <button
               onClick={logout}
-              className="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:bg-white/80 hover:shadow-md rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
             >
               <ArrowRightOnRectangleIcon className="mr-2 h-4 w-4 text-gray-500" />
               Sign out
@@ -103,12 +118,14 @@ export function AdminDashboard() {
       </div>
 
       {/* Main content */}
-      <div className="pl-64">
+      <div className="pl-64 relative z-10">
         <main className="py-8">
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            {activeTab === "dashboard" && <DashboardContent />}
-            {activeTab === "teachers" && <TeachersContent />}
-            {activeTab === "classes" && <ClassesContent />}
+            <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+              {activeTab === "dashboard" && <DashboardContent />}
+              {activeTab === "teachers" && <TeachersContent />}
+              {activeTab === "classes" && <ClassesContent />}
+            </div>
           </div>
         </main>
       </div>
@@ -144,71 +161,106 @@ function DashboardContent() {
   }, []);
 
   return (
-    <div>
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight">
-        Dashboard
-      </h1>
+    <div className="animate-slide-in-up">
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
+          <ChartBarIcon className="h-5 w-5 text-indigo-600" />
+          <span className="text-gray-700">Admin Control Center</span>
+        </div>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+          Dashboard
+        </h1>
+        <p className="mt-2 text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+          Monitor your institution's performance and manage educational resources.
+        </p>
+      </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-10 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
         {/* Teachers Count */}
-        <div className="p-6 rounded-2xl bg-white shadow-lg flex items-center hover:shadow-xl transition-shadow">
-          <UserGroupIcon className="h-10 w-10 text-blue-600" />
+        <div className="group p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex items-center hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300">
+            <UserGroupIcon className="h-7 w-7 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
+          </div>
           <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600">Total Teachers</p>
-            <p className="text-2xl font-extrabold text-gray-900">
+            <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Total Teachers</p>
+            <p className="text-3xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {teacherCount ?? "..."}
             </p>
           </div>
         </div>
 
         {/* Classes Count */}
-        <div className="p-6 rounded-2xl bg-white shadow-lg flex items-center hover:shadow-xl transition-shadow">
-          <AcademicCapIcon className="h-10 w-10 text-green-600" />
+        <div className="group p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex items-center hover:shadow-2xl hover:shadow-green-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 group-hover:bg-green-200 transition-colors duration-300">
+            <AcademicCapIcon className="h-7 w-7 text-green-600 group-hover:scale-110 transition-transform duration-300" />
+          </div>
           <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600">Active Classes</p>
-            <p className="text-2xl font-extrabold text-gray-900">
+            <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Active Classes</p>
+            <p className="text-3xl font-semibold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
               {classesCount ?? "..."}
             </p>
           </div>
         </div>
 
-        {/* Static */}
-        <div className="p-6 rounded-2xl bg-white shadow-lg flex items-center hover:shadow-xl transition-shadow">
-          <ChartBarIcon className="h-10 w-10 text-yellow-500" />
+        {/* Exams Count */}
+        <div className="group p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex items-center hover:shadow-2xl hover:shadow-yellow-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-100 group-hover:bg-yellow-200 transition-colors duration-300">
+            <ChartBarIcon className="h-7 w-7 text-yellow-600 group-hover:scale-110 transition-transform duration-300" />
+          </div>
           <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600">Exams This Month</p>
-            <p className="text-2xl font-extrabold text-gray-900">8</p>
+            <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Exams This Month</p>
+            <p className="text-3xl font-semibold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">8</p>
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white shadow-lg flex items-center hover:shadow-xl transition-shadow">
-          <CogIcon className="h-10 w-10 text-purple-600" />
+        {/* System Status */}
+        <div className="group p-6 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 flex items-center hover:shadow-2xl hover:shadow-purple-100/50 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300">
+            <CogIcon className="h-7 w-7 text-purple-600 group-hover:scale-110 transition-transform duration-300 animate-gentle-pulse" />
+          </div>
           <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600">System Status</p>
-            <p className="text-2xl font-extrabold text-green-600">Active</p>
+            <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">System Status</p>
+            <p className="text-3xl font-medium bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Active</p>
           </div>
         </div>
       </div>
 
       {/* Notice Board */}
-      <div className="p-6 rounded-2xl bg-white shadow-lg">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Notice Board</h2>
+      <div className="p-8 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100 hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
+            <BellAlertIcon className="h-6 w-6 text-blue-600" />
+          </div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Notice Board</h2>
+        </div>
         <div className="space-y-4">
-          <div className="border-l-4 border-blue-500 pl-4 py-3 bg-blue-50 rounded-r-xl shadow-sm">
-            <p className="text-sm font-semibold text-blue-800">
-              Important Update: System maintenance scheduled for 2025-09-15 at
-              3:00 AM PST.
+          <div className="group border-l-4 border-blue-500 pl-6 py-4 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-gentle-pulse"></div>
+              <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">Important Update</span>
+            </div>
+            <p className="text-sm font-semibold text-blue-800 group-hover:text-blue-900 transition-colors duration-300">
+              System maintenance scheduled for 2025-09-15 at 3:00 AM PST.
             </p>
           </div>
-          <div className="border-l-4 border-green-500 pl-4 py-3 bg-green-50 rounded-r-xl shadow-sm">
-            <p className="text-sm font-semibold text-green-800">
-              Future Feature Release: Subject management will be available soon!
+          <div className="group border-l-4 border-green-500 pl-6 py-4 bg-gradient-to-r from-green-50 to-green-50/50 rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-gentle-pulse" style={{ animationDelay: '1s' }}></div>
+              <span className="text-xs font-medium text-green-600 uppercase tracking-wide">Feature Release</span>
+            </div>
+            <p className="text-sm font-semibold text-green-800 group-hover:text-green-900 transition-colors duration-300">
+              Subject management will be available soon!
             </p>
           </div>
-          <div className="border-l-4 border-yellow-500 pl-4 py-3 bg-yellow-50 rounded-r-xl shadow-sm">
-            <p className="text-sm font-semibold text-yellow-800">
-              Reminder: Teacher training session on 2025-09-01 at 10:00 AM.
+          <div className="group border-l-4 border-yellow-500 pl-6 py-4 bg-gradient-to-r from-yellow-50 to-yellow-50/50 rounded-r-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-gentle-pulse" style={{ animationDelay: '2s' }}></div>
+              <span className="text-xs font-medium text-yellow-600 uppercase tracking-wide">Reminder</span>
+            </div>
+            <p className="text-sm font-semibold text-yellow-800 group-hover:text-yellow-900 transition-colors duration-300">
+              Teacher training session on 2025-09-01 at 10:00 AM.
             </p>
           </div>
         </div>
@@ -225,6 +277,7 @@ function DashboardContent() {
 function TeachersContent() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   // For Add Teacher form
   const [form, setForm] = useState({
@@ -252,93 +305,190 @@ function TeachersContent() {
 
   async function addTeacher() {
     try {
+      setSubmitting(true);
       await usersAPI.create(form);
       setForm({ firstName: "", lastName: "", email: "", role: "teacher" });
       loadTeachers();
+      toast.success('Teacher added successfully!');
     } catch (err) {
-      alert("Failed to add teacher: " + err);
+      console.error('Failed to add teacher:', err);
+      toast.error('Failed to add teacher. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-slide-in-up">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">👩‍🏫 Teachers</h1>
+      <div className="mb-8">
+        <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
+          <UserGroupIcon className="h-5 w-5 text-indigo-600" />
+          <span className="text-gray-700">Teacher Management</span>
+        </div>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+          Teachers
+        </h1>
+        <p className="mt-2 text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+          Manage teaching staff and monitor their activities across the platform.
+        </p>
       </div>
 
       {/* Add Teacher Form */}
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-8 max-w-2xl mx-auto">
-        <h2 className="text-xl font-semibold mb-6 text-gray-900">
-          Add New Teacher
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* First Name */}
-          <div className="relative">
-            <input
-              id="firstName"
-              type="text"
-              placeholder=" "
-              value={form.firstName}
-              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-              className="peer w-full rounded-lg border border-gray-300 px-4 pt-5 pb-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            />
-            <label
-              htmlFor="firstName"
-              className="absolute left-3 top-2 text-gray-500 text-sm transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600"
-            >
-              First Name
-            </label>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 w-full max-w-6xl hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+        <div className="flex items-center gap-3 mb-8">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
+            <UserGroupIcon className="h-6 w-6 text-blue-600" />
           </div>
-
-          {/* Last Name */}
-          <div className="relative">
-            <input
-              id="lastName"
-              type="text"
-              placeholder=" "
-              value={form.lastName}
-              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-              className="peer w-full rounded-lg border border-gray-300 px-4 pt-5 pb-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            />
-            <label
-              htmlFor="lastName"
-              className="absolute left-3 top-2 text-gray-500 text-sm transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600"
-            >
-              Last Name
-            </label>
-          </div>
-
-          {/* Email */}
-          <div className="relative md:col-span-2">
-            <input
-              id="email"
-              type="email"
-              placeholder=" "
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="peer w-full rounded-lg border border-gray-300 px-4 pt-5 pb-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            />
-            <label
-              htmlFor="email"
-              className="absolute left-3 top-2 text-gray-500 text-sm transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600"
-            >
-              Email
-            </label>
-          </div>
+          <h2 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Add New Teacher
+          </h2>
         </div>
 
-        <button
-          onClick={addTeacher}
-          className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg px-6 py-3 shadow-md hover:scale-105 hover:shadow-lg transition-all"
-        >
-          ➕ Add Teacher
-        </button>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Form Section */}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* First Name */}
+            <div className="relative">
+              <label
+                htmlFor="firstName"
+                className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+              >
+                First Name *
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                value={form.firstName}
+                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                required
+              />
+            </div>
+
+            {/* Last Name */}
+            <div className="relative">
+              <label
+                htmlFor="lastName"
+                className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+              >
+                Last Name *
+              </label>
+              <input
+                id="lastName"
+                type="text"
+                value={form.lastName}
+                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                required
+              />
+            </div>
+
+            </div>
+
+            {/* Email - Full width */}
+            <div className="relative">
+              <label
+                htmlFor="email"
+                className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+              >
+                Email Address *
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                required
+              />
+            </div>
+
+            <button
+              onClick={addTeacher}
+              disabled={!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || submitting}
+              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl px-8 py-3 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Adding Teacher...' : 'Add Teacher'}
+            </button>
+          </div>
+
+          {/* Illustration Section */}
+          <div className="hidden lg:flex items-center justify-center">
+            <div className="w-full max-w-sm opacity-80">
+              <svg viewBox="0 0 400 300" className="w-full h-auto">
+                <defs>
+                  <linearGradient id="teacherGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#3B82F6" />
+                    <stop offset="100%" stopColor="#6366F1" />
+                  </linearGradient>
+                </defs>
+                
+                {/* Background elements */}
+                <circle cx="320" cy="80" r="4" fill="#E0E7FF" opacity="0.6" />
+                <circle cx="300" cy="120" r="3" fill="#DBEAFE" opacity="0.8" />
+                <circle cx="340" cy="140" r="2" fill="#C7D2FE" opacity="0.7" />
+                
+                {/* Blackboard */}
+                <rect x="250" y="60" width="120" height="80" rx="8" fill="#1F2937" />
+                <rect x="255" y="65" width="110" height="70" rx="4" fill="#374151" />
+                
+                {/* Math formulas on blackboard */}
+                <text x="265" y="85" fill="#F3F4F6" fontSize="8" fontFamily="serif">E = mc²</text>
+                <text x="265" y="100" fill="#F3F4F6" fontSize="8" fontFamily="serif">√(a² + b²)</text>
+                <text x="265" y="115" fill="#F3F4F6" fontSize="8" fontFamily="serif">∫ f(x)dx</text>
+                <text x="265" y="130" fill="#F3F4F6" fontSize="8" fontFamily="serif">π = 3.14159</text>
+                
+                {/* Teacher figure */}
+                <g transform="translate(50, 60)">
+                  {/* Body */}
+                  <ellipse cx="80" cy="180" rx="45" ry="60" fill="url(#teacherGradient)" />
+                  
+                  {/* Head */}
+                  <circle cx="80" cy="80" r="35" fill="#FBBF24" />
+                  
+                  {/* Hair */}
+                  <path d="M45 70 Q80 45 115 70 Q110 60 105 55 Q95 50 80 50 Q65 50 55 55 Q50 60 45 70 Z" fill="#8B5CF6" />
+                  
+                  {/* Face features */}
+                  <circle cx="70" cy="75" r="2" fill="#374151" />
+                  <circle cx="90" cy="75" r="2" fill="#374151" />
+                  <path d="M75 85 Q80 90 85 85" stroke="#374151" strokeWidth="1.5" fill="none" />
+                  
+                  {/* Glasses */}
+                  <circle cx="70" cy="75" r="8" fill="none" stroke="#374151" strokeWidth="2" />
+                  <circle cx="90" cy="75" r="8" fill="none" stroke="#374151" strokeWidth="2" />
+                  <line x1="78" y1="75" x2="82" y2="75" stroke="#374151" strokeWidth="2" />
+                  
+                  {/* Arms */}
+                  <ellipse cx="35" cy="140" rx="15" ry="35" fill="#FBBF24" transform="rotate(-20 35 140)" />
+                  <ellipse cx="125" cy="140" rx="15" ry="35" fill="#FBBF24" transform="rotate(20 125 140)" />
+                  
+                  {/* Pointer stick */}
+                  <line x1="140" y1="120" x2="200" y2="90" stroke="#8B4513" strokeWidth="3" />
+                  <circle cx="200" cy="90" r="2" fill="#8B4513" />
+                </g>
+                
+                {/* Floating educational icons */}
+                <g opacity="0.4">
+                  <circle cx="60" cy="50" r="12" fill="#E0E7FF" />
+                  <text x="55" y="55" fill="#3B82F6" fontSize="10">📚</text>
+                  
+                  <circle cx="350" cy="200" r="12" fill="#DBEAFE" />
+                  <text x="345" y="205" fill="#1E40AF" fontSize="10">🎓</text>
+                  
+                  <circle cx="80" cy="250" r="12" fill="#F3E8FF" />
+                  <text x="75" y="255" fill="#7C3AED" fontSize="10">✏️</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Teacher List */}
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
         {loading ? (
           <p className="text-gray-500 animate-pulse">Loading teachers...</p>
         ) : teachers?.length === 0 ? (
@@ -351,19 +501,19 @@ function TeachersContent() {
             <table className="w-full text-left border-collapse">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="py-3 px-4 text-gray-700 font-medium">ID</th>
+                  <th className="py-3 px-4 text-gray-700 font-medium">S. No.</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Name</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Email</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {teachers?.map((t) => (
+                {teachers?.map((t, index) => (
                   <tr
                     key={t.id}
                     className="border-b hover:bg-blue-50 transition-colors"
                   >
-                    <td className="py-3 px-4 text-gray-900">{t.id}</td>
+                    <td className="py-3 px-4 text-gray-900">{index + 1}</td>
                     <td className="py-3 px-4 text-gray-900">
                       {t.firstName} {t.lastName}
                     </td>
@@ -396,6 +546,7 @@ function ClassesContent() {
   const [classes, setClasses] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -437,6 +588,7 @@ function ClassesContent() {
 
   async function addClass() {
     try {
+      setSubmitting(true);
       await classesAPI.create(form);
       setForm({
         name: "",
@@ -447,172 +599,260 @@ function ClassesContent() {
         teacherId: "",
       });
       loadClasses();
+      toast.success('Class added successfully!');
     } catch (err) {
-      alert("Failed to add class: " + err);
+      console.error('Failed to add class:', err);
+      toast.error('Failed to add class. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-slide-in-up">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">📚 Classes</h1>
+      <div className="mb-8">
+        <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm shadow-sm ring-1 ring-blue-100 backdrop-blur animate-fade-in-scale">
+          <AcademicCapIcon className="h-5 w-5 text-indigo-600" />
+          <span className="text-gray-700">Class Management</span>
+        </div>
+        <h1 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-4xl font-bold tracking-tight text-transparent animate-slide-in-up" style={{ animationDelay: '100ms' }}>
+          Classes
+        </h1>
+        <p className="mt-2 text-base text-gray-600 animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+          Organize classes, assign teachers, and manage academic schedules.
+        </p>
       </div>
 
       {/* Add Class Form */}
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-8 max-w-2xl mx-auto">
-        <h2 className="text-xl font-semibold mb-6 text-gray-900">Add New Class</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Class Name */}
-          <div className="relative">
-            <input
-              id="name"
-              type="text"
-              placeholder=" "
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="peer w-full rounded-lg border border-gray-300 px-4 pt-5 pb-2 text-gray-900 
-                focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            />
-            <label
-              htmlFor="name"
-              className="absolute left-3 top-2 text-gray-500 text-sm transition-all
-                peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
-                peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600"
-            >
-              Class Name
-            </label>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 w-full max-w-6xl hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+        <div className="flex items-center gap-3 mb-8">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-100 to-indigo-100">
+            <AcademicCapIcon className="h-6 w-6 text-blue-600" />
           </div>
-
-          {/* Description */}
-          <div className="relative">
-            <input
-              id="description"
-              type="text"
-              placeholder=" "
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="peer w-full rounded-lg border border-gray-300 px-4 pt-5 pb-2 text-gray-900 
-                focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            />
-            <label
-              htmlFor="description"
-              className="absolute left-3 top-2 text-gray-500 text-sm transition-all
-                peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
-                peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600"
-            >
-              Description (Optional)
-            </label>
-          </div>
-
-          {/* Grade */}
-          <div className="relative">
-            <label
-              htmlFor="grade"
-              className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
-            >
-              Grade
-            </label>
-            <select
-              id="grade"
-              value={form.grade}
-              onChange={(e) => setForm({ ...form, grade: e.target.value })}
-              className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 
-                focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            >
-              <option value="">Select Grade</option>
-              {grades.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Section */}
-          <div className="relative">
-            <label
-              htmlFor="section"
-              className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
-            >
-              Section
-            </label>
-            <select
-              id="section"
-              value={form.section}
-              onChange={(e) => setForm({ ...form, section: e.target.value })}
-              className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 
-                focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            >
-              <option value="">Select Section</option>
-              {sections.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Academic Year */}
-          <div className="relative">
-            <label
-              htmlFor="academicYear"
-              className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
-            >
-              Academic Year
-            </label>
-            <select
-              id="academicYear"
-              value={form.academicYear}
-              onChange={(e) => setForm({ ...form, academicYear: e.target.value })}
-              className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900
-                focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            >
-              <option value="">Select Academic Year</option>
-              {academicYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Teacher */}
-          <div className="relative">
-            <label
-              htmlFor="teacherId"
-              className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
-            >
-              Teacher
-            </label>
-            <select
-              id="teacherId"
-              value={form.teacherId}
-              onChange={(e) => setForm({ ...form, teacherId: e.target.value })}
-              className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900
-                focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
-            >
-              <option value="">Select Teacher</option>
-              {teachers.map((teacher) => (
-                <option key={teacher.id} value={teacher.id}>
-                  {teacher.firstName} {teacher.lastName}
-                </option>
-              ))}
-            </select>
-          </div>
+          <h2 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Add New Class
+          </h2>
         </div>
 
-        <button
-          onClick={addClass}
-          className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg px-6 py-3 shadow-md hover:scale-105 hover:shadow-lg transition-all"
-        >
-          ➕ Add Class
-        </button>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Form Section */}
+          <div className="space-y-6">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Class Name */}
+              <div className="relative">
+                <label
+                  htmlFor="name"
+                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+                >
+                  Class Name *
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                  required
+                />
+              </div>
+
+              {/* Description */}
+              <div className="relative">
+                <label
+                  htmlFor="description"
+                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+                >
+                  Description (Optional)
+                </label>
+                <input
+                  id="description"
+                  type="text"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                />
+              </div>
+
+              {/* Grade */}
+              <div className="relative">
+                <label
+                  htmlFor="grade"
+                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+                >
+                  Grade *
+                </label>
+                <select
+                  id="grade"
+                  value={form.grade}
+                  onChange={(e) => setForm({ ...form, grade: e.target.value })}
+                  className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                  required
+                >
+                  <option value="">Select Grade</option>
+                  {grades.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Section */}
+              <div className="relative">
+                <label
+                  htmlFor="section"
+                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+                >
+                  Section *
+                </label>
+                <select
+                  id="section"
+                  value={form.section}
+                  onChange={(e) => setForm({ ...form, section: e.target.value })}
+                  className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                  required
+                >
+                  <option value="">Select Section</option>
+                  {sections.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Academic Year */}
+              <div className="relative">
+                <label
+                  htmlFor="academicYear"
+                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+                >
+                  Academic Year *
+                </label>
+                <select
+                  id="academicYear"
+                  value={form.academicYear}
+                  onChange={(e) => setForm({ ...form, academicYear: e.target.value })}
+                  className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                  required
+                >
+                  <option value="">Select Academic Year</option>
+                  {academicYears.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Teacher */}
+              <div className="relative">
+                <label
+                  htmlFor="teacherId"
+                  className="absolute left-3 top-2 text-gray-500 text-sm bg-white px-1 z-10"
+                >
+                  Teacher *
+                </label>
+                <select
+                  id="teacherId"
+                  value={form.teacherId}
+                  onChange={(e) => setForm({ ...form, teacherId: e.target.value })}
+                  className="w-full mt-5 rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+                  required
+                >
+                  <option value="">Select Teacher</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.firstName} {teacher.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={addClass}
+              disabled={!form.name.trim() || !form.grade || !form.section || !form.academicYear || !form.teacherId || submitting}
+              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl px-8 py-3 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Adding Class...' : 'Add Class'}
+            </button>
+          </div>
+
+          {/* Illustration Section */}
+          <div className="hidden lg:flex items-center justify-center">
+            <div className="w-full max-w-sm opacity-80">
+              <svg viewBox="0 0 400 300" className="w-full h-auto">
+                <defs>
+                  <linearGradient id="classGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#3B82F6" />
+                    <stop offset="100%" stopColor="#6366F1" />
+                  </linearGradient>
+                </defs>
+                
+                {/* Background elements */}
+                <circle cx="50" cy="50" r="3" fill="#E0E7FF" opacity="0.6" />
+                <circle cx="350" cy="80" r="4" fill="#DBEAFE" opacity="0.8" />
+                <circle cx="370" cy="120" r="2" fill="#C7D2FE" opacity="0.7" />
+                
+                {/* Books stack */}
+                <g transform="translate(80, 120)">
+                  <rect x="0" y="20" width="60" height="8" rx="2" fill="#EF4444" />
+                  <rect x="5" y="12" width="60" height="8" rx="2" fill="#3B82F6" />
+                  <rect x="-5" y="4" width="60" height="8" rx="2" fill="#10B981" />
+                  <rect x="2" y="-4" width="60" height="8" rx="2" fill="#F59E0B" />
+                </g>
+                
+                {/* Graduation cap */}
+                <g transform="translate(200, 60)">
+                  <ellipse cx="0" cy="15" rx="40" ry="8" fill="#1F2937" />
+                  <rect x="-35" y="10" width="70" height="10" rx="2" fill="#374151" />
+                  <circle cx="35" cy="15" r="2" fill="#F59E0B" />
+                  <line x1="35" y1="15" x2="55" y2="5" stroke="#8B4513" strokeWidth="1" />
+                </g>
+                
+                {/* School building */}
+                <g transform="translate(250, 140)">
+                  <rect x="0" y="0" width="100" height="80" fill="url(#classGradient)" />
+                  <rect x="10" y="10" width="15" height="20" fill="#F3F4F6" />
+                  <rect x="30" y="10" width="15" height="20" fill="#F3F4F6" />
+                  <rect x="50" y="10" width="15" height="20" fill="#F3F4F6" />
+                  <rect x="70" y="10" width="15" height="20" fill="#F3F4F6" />
+                  <rect x="35" y="50" width="20" height="30" fill="#8B4513" />
+                  <circle cx="45" cy="65" r="1" fill="#374151" />
+                  <polygon points="0,0 50,0 100,0 50,-20" fill="#DC2626" />
+                </g>
+                
+                {/* Students icons */}
+                <g opacity="0.4">
+                  <circle cx="60" cy="220" r="15" fill="#E0E7FF" />
+                  <text x="53" y="227" fill="#3B82F6" fontSize="12">👨‍🎓</text>
+                  
+                  <circle cx="120" cy="240" r="15" fill="#DBEAFE" />
+                  <text x="113" y="247" fill="#1E40AF" fontSize="12">👩‍🎓</text>
+                  
+                  <circle cx="180" cy="260" r="15" fill="#F3E8FF" />
+                  <text x="173" y="267" fill="#7C3AED" fontSize="12">📖</text>
+                </g>
+                
+                {/* Academic elements */}
+                <g opacity="0.3">
+                  <circle cx="300" cy="200" r="12" fill="#FEF3C7" />
+                  <text x="295" y="205" fill="#D97706" fontSize="10">🏆</text>
+                  
+                  <circle cx="50" cy="180" r="12" fill="#ECFDF5" />
+                  <text x="45" y="185" fill="#059669" fontSize="10">📊</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Class List */}
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 hover:shadow-2xl transition-all duration-300 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
         {loading ? (
           <p className="text-gray-500 animate-pulse">Loading classes...</p>
         ) : classes.length === 0 ? (
@@ -625,7 +865,7 @@ function ClassesContent() {
             <table className="w-full text-left border-collapse">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="py-3 px-4 text-gray-700 font-medium">ID</th>
+                  <th className="py-3 px-4 text-gray-700 font-medium">S. No.</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Name</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Grade</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Section</th>
@@ -635,9 +875,9 @@ function ClassesContent() {
                 </tr>
               </thead>
               <tbody>
-                {classes.map((c) => (
+                {classes.map((c, index) => (
                   <tr key={c.id} className="border-b hover:bg-blue-50 transition-colors">
-                    <td className="py-3 px-4 text-gray-900">{c.id}</td>
+                    <td className="py-3 px-4 text-gray-900">{index + 1}</td>
                     <td className="py-3 px-4 text-gray-900">{c.name}</td>
                     <td className="py-3 px-4 text-gray-900">{c.grade}</td>
                     <td className="py-3 px-4 text-gray-900">{c.section}</td>

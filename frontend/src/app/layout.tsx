@@ -5,6 +5,10 @@ import { Providers } from '@/components/providers'
 export const metadata: Metadata = {
   title: 'EduAIssist - AI-Powered Education Platform',
   description: 'Generate question papers, evaluate answers, and manage educational content with AI assistance',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({

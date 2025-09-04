@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from './api'
 import { User } from '@/types/user'
@@ -20,9 +20,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const loginInProgress = useRef(false)
 
   const login = async (token: string) => {
+    // Prevent duplicate login attempts
+    if (loginInProgress.current) {
+      return
+    }
+    
+    loginInProgress.current = true
+    
     try {
+      // Dismiss any existing toasts to prevent duplicates
+      toast.dismiss()
+      
       Cookies.set('token', token, { expires: 7 })
       const response = await api.get('/auth/profile')
       setUser(response.data)
@@ -39,6 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.error('Login failed')
         logout()
       }
+    } finally {
+      loginInProgress.current = false
     }
   }
 
