@@ -16,7 +16,7 @@ import {
 // -------------------------
 // API Helper
 // -------------------------
-const API_URL = "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
 
 async function fetcher(endpoint: string, options: RequestInit = {}) {
   const token = Cookies.get("token");

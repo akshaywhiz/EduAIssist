@@ -1,7 +1,7 @@
 import axios, { AxiosProgressEvent } from 'axios'
 import Cookies from 'js-cookie'
 
-const BASE_URL = process.env.BACKEND_URL || 'http://localhost:4000'
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:4000'
 
 export const api = axios.create({
   baseURL: BASE_URL,

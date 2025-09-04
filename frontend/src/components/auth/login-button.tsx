@@ -20,18 +20,21 @@ export function LoginButton() {
 
   const handleGoogleLogin = () => {
     setLoading(true)
-    window.location.href = `${process.env.BACKEND_URL || 'http://localhost:4000'}/auth/google`
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:4000'
+    window.location.href = `${backendUrl}/auth/google`
   }
 
   const handleMicrosoftLogin = () => {
     setLoading(true)
-    window.location.href = `${process.env.BACKEND_URL || 'http://localhost:4000'}/auth/microsoft`
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:4000'
+    window.location.href = `${backendUrl}/auth/microsoft`
   }
 
   const handleTestLogin = async (userType: 'admin' | 'teacher') => {
     setLoading(true)
     try {
-      const response = await fetch(`${process.env.BACKEND_URL || 'http://localhost:4000'}/auth/test-login`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:4000'
+      const response = await fetch(`${backendUrl}/auth/test-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,7 +57,8 @@ export function LoginButton() {
   const handleUnauthorizedTest = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`${process.env.BACKEND_URL || 'http://localhost:4000'}/auth/test-unauthorized-login`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:4000'
+      const response = await fetch(`${backendUrl}/auth/test-unauthorized-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
