@@ -124,7 +124,7 @@ export function AdminDashboard() {
               </div>
             </div>
             <button
-              onClick={logout}
+              onClick={() => logout()}
               className="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-md rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
             >
               <ArrowRightOnRectangleIcon className="mr-2 h-4 w-4 text-gray-500 hover:text-red-600 transition-colors duration-300" />
