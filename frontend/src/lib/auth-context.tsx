@@ -11,7 +11,7 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   login: (token: string) => Promise<void>
-  logout: () => void
+  logout: (showToast?: boolean, redirectToHome?: boolean) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check if user is unauthorized
       if (error.response?.status === 401 || error.message?.includes('unauthorized')) {
         toast.error('Access denied. You are not authorized to use this platform.')
-        logout()
+        logout(false, false) // No toast, no redirect
         // Redirect to unauthorized page
         window.location.href = '/unauthorized'
       } else {
@@ -55,11 +55,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
+  const logout = (showToast = true, redirectToHome = true) => {
     Cookies.remove('token')
     setUser(null)
-    router.push('/')
-    toast.success('Logged out successfully')
+    if (redirectToHome) {
+      router.push('/')
+    }
+    if (showToast) {
+      toast.success('Logged out successfully')
+    }
   }
 
   useEffect(() => {

@@ -25,7 +25,7 @@ export function Logo({ className = '', size = 'md', showFallback = true }: LogoP
   return (
     <div className={`relative ${className}`}>
       <img 
-        src="/logo.svg" 
+        src="/logo.png" 
         alt="EduAIssist Logo" 
         className={`${sizeClasses[size]} object-contain`}
         onError={(e) => {
