@@ -14,6 +14,9 @@ import {
   ArrowRightOnRectangleIcon,
   CalendarIcon,
   BellAlertIcon,
+  MagnifyingGlassIcon,
+  TrashIcon,
+  PencilIcon,
 } from "@heroicons/react/24/outline";
 
 
@@ -314,8 +317,22 @@ function DashboardContent() {
 
 function TeachersContent() {
   const [teachers, setTeachers] = useState<any[]>([]);
+  const [filteredTeachers, setFilteredTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [teacherToEdit, setTeacherToEdit] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: "teacher",
+  });
+  const [updating, setUpdating] = useState(false);
 
   // For Add Teacher form
   const [form, setForm] = useState({
@@ -329,6 +346,22 @@ function TeachersContent() {
     loadTeachers();
   }, []);
 
+  // Filter teachers based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredTeachers(teachers);
+    } else {
+      const filtered = teachers.filter(teacher => {
+        const fullName = `${teacher.firstName} ${teacher.lastName}`.toLowerCase();
+        const email = teacher.email.toLowerCase();
+        const query = searchQuery.toLowerCase();
+        
+        return fullName.includes(query) || email.includes(query);
+      });
+      setFilteredTeachers(filtered);
+    }
+  }, [teachers, searchQuery]);
+
   async function loadTeachers() {
     try {
       setLoading(true);
@@ -339,6 +372,70 @@ function TeachersContent() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleDeleteClick(teacher: any) {
+    setTeacherToDelete(teacher);
+    setDeleteModalOpen(true);
+  }
+
+  async function handleDeleteConfirm() {
+    if (!teacherToDelete) return;
+    
+    try {
+      setDeleting(true);
+      await usersAPI.delete(teacherToDelete.id);
+      await loadTeachers();
+      setDeleteModalOpen(false);
+      setTeacherToDelete(null);
+      toast.success(`Teacher ${teacherToDelete.firstName} ${teacherToDelete.lastName} deleted successfully!`);
+    } catch (err) {
+      console.error('Failed to delete teacher:', err);
+      toast.error('Failed to delete teacher. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  function handleDeleteCancel() {
+    setDeleteModalOpen(false);
+    setTeacherToDelete(null);
+  }
+
+  function handleEditClick(teacher: any) {
+    setTeacherToEdit(teacher);
+    setEditForm({
+      firstName: teacher.firstName,
+      lastName: teacher.lastName,
+      email: teacher.email,
+      role: teacher.role,
+    });
+    setEditModalOpen(true);
+  }
+
+  async function handleEditConfirm() {
+    if (!teacherToEdit) return;
+    
+    try {
+      setUpdating(true);
+      await usersAPI.update(teacherToEdit.id, editForm);
+      await loadTeachers();
+      setEditModalOpen(false);
+      setTeacherToEdit(null);
+      setEditForm({ firstName: "", lastName: "", email: "", role: "teacher" });
+      toast.success(`Teacher ${editForm.firstName} ${editForm.lastName} updated successfully!`);
+    } catch (err) {
+      console.error('Failed to update teacher:', err);
+      toast.error('Failed to update teacher. Please try again.');
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  function handleEditCancel() {
+    setEditModalOpen(false);
+    setTeacherToEdit(null);
+    setEditForm({ firstName: "", lastName: "", email: "", role: "teacher" });
   }
 
   async function addTeacher() {
@@ -527,12 +624,28 @@ function TeachersContent() {
 
       {/* Teacher List */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 hover:shadow-2xl transition-all duration-300">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search teachers by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+        </div>
+
         {loading ? (
           <p className="text-gray-500">Loading teachers...</p>
-        ) : teachers?.length === 0 ? (
+        ) : filteredTeachers?.length === 0 ? (
           <div className="flex flex-col items-center py-10 text-gray-500">
             <span className="text-4xl mb-2">📭</span>
-            <p>No teachers found.</p>
+            <p>{searchQuery ? 'No teachers found matching your search.' : 'No teachers found.'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -543,10 +656,11 @@ function TeachersContent() {
                   <th className="py-3 px-4 text-gray-700 font-medium">Name</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Email</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Status</th>
+                  <th className="py-3 px-4 text-gray-700 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {teachers?.map((t, index) => (
+                {filteredTeachers?.map((t, index) => (
                   <tr
                     key={t.id}
                     className="border-b hover:bg-blue-50 transition-colors"
@@ -567,6 +681,24 @@ function TeachersContent() {
                         </span>
                       )}
                     </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditClick(t)}
+                          className="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors duration-200"
+                          title="Edit teacher"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(t)}
+                          className="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors duration-200"
+                          title="Delete teacher"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -574,6 +706,135 @@ function TeachersContent() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleDeleteCancel}></div>
+            
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <TrashIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Delete Teacher
+                  </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Are you sure you want to delete teacher <span className="font-semibold text-gray-700">{teacherToDelete?.firstName} {teacherToDelete?.lastName}</span>? This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                  onClick={handleDeleteCancel}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Teacher Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleEditCancel}></div>
+            
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <PencilIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    Edit Teacher
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.firstName}
+                          onChange={(e) => setEditForm({...editForm, firstName: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="First Name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.lastName}
+                          onChange={(e) => setEditForm({...editForm, lastName: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Last Name"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Email Address"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleEditConfirm}
+                  disabled={updating || !editForm.firstName.trim() || !editForm.lastName.trim() || !editForm.email.trim()}
+                >
+                  {updating ? 'Updating...' : 'Update Teacher'}
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                  onClick={handleEditCancel}
+                  disabled={updating}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -582,9 +843,25 @@ function TeachersContent() {
 
 function ClassesContent() {
   const [classes, setClasses] = useState<any[]>([]);
+  const [filteredClasses, setFilteredClasses] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [classToEdit, setClassToEdit] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+    grade: "",
+    section: "",
+    academicYear: "",
+    teacherId: "",
+  });
+  const [updating, setUpdating] = useState(false);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -603,6 +880,23 @@ function ClassesContent() {
     loadTeachersForDropdown();
   }, []);
 
+  // Filter classes based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredClasses(classes);
+    } else {
+      const filtered = classes.filter(classItem => {
+        const className = classItem.name?.toLowerCase() || '';
+        const grade = classItem.grade?.toLowerCase() || '';
+        const section = classItem.section?.toLowerCase() || '';
+        const query = searchQuery.toLowerCase();
+        
+        return className.includes(query) || grade.includes(query) || section.includes(query);
+      });
+      setFilteredClasses(filtered);
+    }
+  }, [classes, searchQuery]);
+
   async function loadClasses() {
     try {
       setLoading(true);
@@ -613,6 +907,86 @@ function ClassesContent() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleDeleteClick(classItem: any) {
+    setClassToDelete(classItem);
+    setDeleteModalOpen(true);
+  }
+
+  async function handleDeleteConfirm() {
+    if (!classToDelete) return;
+    
+    try {
+      setDeleting(true);
+      await classesAPI.delete(classToDelete.id);
+      await loadClasses();
+      setDeleteModalOpen(false);
+      setClassToDelete(null);
+      toast.success(`Class ${classToDelete.name} deleted successfully!`);
+    } catch (err) {
+      console.error('Failed to delete class:', err);
+      toast.error('Failed to delete class. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  function handleDeleteCancel() {
+    setDeleteModalOpen(false);
+    setClassToDelete(null);
+  }
+
+  function handleEditClick(classItem: any) {
+    setClassToEdit(classItem);
+    setEditForm({
+      name: classItem.name,
+      description: classItem.description || "",
+      grade: classItem.grade,
+      section: classItem.section,
+      academicYear: classItem.academicYear,
+      teacherId: classItem.teacherId || "",
+    });
+    setEditModalOpen(true);
+  }
+
+  async function handleEditConfirm() {
+    if (!classToEdit) return;
+    
+    try {
+      setUpdating(true);
+      await classesAPI.update(classToEdit.id, editForm);
+      await loadClasses();
+      setEditModalOpen(false);
+      setClassToEdit(null);
+      setEditForm({
+        name: "",
+        description: "",
+        grade: "",
+        section: "",
+        academicYear: "",
+        teacherId: "",
+      });
+      toast.success(`Class ${editForm.name} updated successfully!`);
+    } catch (err) {
+      console.error('Failed to update class:', err);
+      toast.error('Failed to update class. Please try again.');
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  function handleEditCancel() {
+    setEditModalOpen(false);
+    setClassToEdit(null);
+    setEditForm({
+      name: "",
+      description: "",
+      grade: "",
+      section: "",
+      academicYear: "",
+      teacherId: "",
+    });
   }
 
   async function loadTeachersForDropdown() {
@@ -891,12 +1265,28 @@ function ClassesContent() {
 
       {/* Class List */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl ring-1 ring-blue-100 p-8 hover:shadow-2xl transition-all duration-300">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search classes by name, grade, or section..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+        </div>
+
         {loading ? (
           <p className="text-gray-500">Loading classes...</p>
-        ) : classes.length === 0 ? (
+        ) : filteredClasses.length === 0 ? (
           <div className="flex flex-col items-center py-10 text-gray-500">
             <span className="text-4xl mb-2">📭</span>
-            <p>No classes found.</p>
+            <p>{searchQuery ? 'No classes found matching your search.' : 'No classes found.'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -910,10 +1300,11 @@ function ClassesContent() {
                   <th className="py-3 px-4 text-gray-700 font-medium">Academic Year</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Teacher</th>
                   <th className="py-3 px-4 text-gray-700 font-medium">Status</th>
+                  <th className="py-3 px-4 text-gray-700 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {classes.map((c, index) => (
+                {filteredClasses.map((c, index) => (
                   <tr key={c.id} className="border-b hover:bg-blue-50 transition-colors">
                     <td className="py-3 px-4 text-gray-900">{index + 1}</td>
                     <td className="py-3 px-4 text-gray-900">{c.name}</td>
@@ -934,6 +1325,24 @@ function ClassesContent() {
                         </span>
                       )}
                     </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditClick(c)}
+                          className="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors duration-200"
+                          title="Edit class"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(c)}
+                          className="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors duration-200"
+                          title="Delete class"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -941,6 +1350,189 @@ function ClassesContent() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleDeleteCancel}></div>
+            
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <TrashIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Delete Class
+                  </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Are you sure you want to delete class <span className="font-semibold text-gray-700">{classToDelete?.name} (Grade {classToDelete?.grade} - {classToDelete?.section})</span>? This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                  onClick={handleDeleteCancel}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Class Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleEditCancel}></div>
+            
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <PencilIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    Edit Class
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Class Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.name}
+                          onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Class Name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Description (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.description}
+                          onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Description"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Grade
+                        </label>
+                        <select
+                          value={editForm.grade}
+                          onChange={(e) => setEditForm({...editForm, grade: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Grade</option>
+                          {grades.map((g) => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Section
+                        </label>
+                        <select
+                          value={editForm.section}
+                          onChange={(e) => setEditForm({...editForm, section: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Section</option>
+                          {sections.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Academic Year
+                        </label>
+                        <select
+                          value={editForm.academicYear}
+                          onChange={(e) => setEditForm({...editForm, academicYear: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Academic Year</option>
+                          {academicYears.map((year) => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Teacher
+                        </label>
+                        <select
+                          value={editForm.teacherId}
+                          onChange={(e) => setEditForm({...editForm, teacherId: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select Teacher</option>
+                          {teachers.map((teacher) => (
+                            <option key={teacher.id} value={teacher.id}>
+                              {teacher.firstName} {teacher.lastName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleEditConfirm}
+                  disabled={updating || !editForm.name.trim() || !editForm.grade || !editForm.section || !editForm.academicYear || !editForm.teacherId}
+                >
+                  {updating ? 'Updating...' : 'Update Class'}
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                  onClick={handleEditCancel}
+                  disabled={updating}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
