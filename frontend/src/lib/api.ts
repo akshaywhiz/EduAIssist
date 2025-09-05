@@ -69,6 +69,7 @@ export const materialsAPI = {
   uploadAnswers: (formData: FormData) => api.post('/materials/answers', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   listStudy: (params: { class?: string; subject?: string; q?: string; page?: number; limit?: number }) =>
     api.get('/materials/study', { params: { ...params, _t: Date.now() } }),
+  count: () => api.get('/materials/count'),
 }
 
 export const questionsAPI = {
@@ -95,4 +96,5 @@ export const questionsAPI = {
 
 export const examsAPI = {
   list: (params: { q?: string; page?: number; limit?: number }) => api.get('/exams', { params }),
+  count: () => api.get('/exams/count'),
 }

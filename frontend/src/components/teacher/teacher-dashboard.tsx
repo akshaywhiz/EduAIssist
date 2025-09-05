@@ -12,9 +12,8 @@ import {
   ArrowDownTrayIcon,
   BellAlertIcon
 } from '@heroicons/react/24/outline'
-import { classesAPI, materialsAPI, subjectsAPI } from '@/lib/api'
+import { classesAPI, materialsAPI, subjectsAPI, examsAPI, questionsAPI } from '@/lib/api'
 import { api } from '@/lib/api'
-import { questionsAPI } from '@/lib/api'
 import { useQuery, useMutation } from 'react-query'
 import toast from 'react-hot-toast'
 import { useDropzone } from 'react-dropzone'
@@ -22,7 +21,6 @@ import { Select } from '@/components/ui/select'
 import { Modal } from '@/components/ui/modal'
 import { QuestionGenerator } from '@/components/teacher/question-generator'
 import { Logo } from '@/components/ui/logo'
-import { examsAPI } from '@/lib/api'
 
 const navigation = [
   { name: 'Dashboard', href: '#', icon: ChartBarIcon, current: true },
@@ -178,6 +176,16 @@ function DashboardContent() {
     return res.data.total as number
   })
 
+  const { data: examsCount } = useQuery(['exams-count'], async () => {
+    const res = await examsAPI.count()
+    return res.data.total as number
+  })
+
+  const { data: materialsCount } = useQuery(['materials-count'], async () => {
+    const res = await materialsAPI.count()
+    return res.data.total as number
+  })
+
   return (
     <div>
       {/* Page Header */}
@@ -205,7 +213,7 @@ function DashboardContent() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Question Papers</p>
-              <p className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">12</p>
+              <p className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{examsCount ?? "..."}</p>
             </div>
           </div>
         </div>
@@ -233,7 +241,7 @@ function DashboardContent() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 group-hover:text-gray-700 transition-colors duration-300">Uploads</p>
-              <p className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">8</p>
+              <p className="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{materialsCount ?? "..."}</p>
             </div>
           </div>
         </div>
@@ -345,10 +353,10 @@ function QuestionPapersContent() {
 
       <QuestionGenerator examId="demo-exam-id" />
 
-      <div className="mt-6 rounded-xl lg:rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-green-100">
+      <div className="mt-6 rounded-xl lg:rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm shadow-xl ring-1 ring-blue-100">
         <div className="px-4 sm:px-6 pt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h2 className="text-base sm:text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Generated Papers</h2>
-          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search by title" className="w-full md:w-80 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200" />
+          <h2 className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Generated Papers</h2>
+          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search by title" className="w-full md:w-80 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
         </div>
         <div className="px-4 sm:px-6 py-4 overflow-x-auto">
           <table className="min-w-full table-fixed border border-gray-200 rounded-lg overflow-hidden">
