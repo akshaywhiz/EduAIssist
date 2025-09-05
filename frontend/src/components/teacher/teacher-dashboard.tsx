@@ -483,7 +483,7 @@ function UploadStudyMaterialsContent() {
       });
       console.log('Upload successful:', result);
       return result.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload failed:', error);
       console.error('Error details:', {
         message: error.message,
