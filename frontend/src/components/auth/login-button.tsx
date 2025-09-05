@@ -2,9 +2,13 @@
 
 import React, { useState } from 'react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { useAuth } from '@/lib/auth-context'
+import toast from 'react-hot-toast'
 
 export function LoginButton() {
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
+  const { login } = useAuth()
 
   const handleGoogleLogin = () => {
     setLoading(true)
@@ -12,6 +16,37 @@ export function LoginButton() {
     window.location.href = `${backendUrl}/auth/google`
   }
 
+  const handleDemoLogin = async () => {
+    setDemoLoading(true)
+    try {
+      // Call the backend demo login endpoint
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:4000'
+      const response = await fetch(`${backendUrl}/auth/demo-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: 'teacher@eduaissist.com' }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Demo login failed')
+      }
+
+      const result = await response.json()
+      
+      if (result.access_token) {
+        await login(result.access_token)
+      } else {
+        throw new Error('No access token received')
+      }
+    } catch (error) {
+      console.error('Demo login failed:', error)
+      toast.error('Demo login failed. Please try again.')
+    } finally {
+      setDemoLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-8 animate-fade-in-scale">
@@ -52,18 +87,47 @@ export function LoginButton() {
         </button>
       </div>
 
+      {/* Divider */}
+      <div className="flex items-center animate-slide-in-up" style={{ animationDelay: '300ms' }}>
+        <div className="flex-1 border-t border-gray-300"></div>
+        <div className="mx-4 text-sm text-gray-500">or</div>
+        <div className="flex-1 border-t border-gray-300"></div>
+      </div>
+
+      {/* Teacher Demo Login Button */}
+      <div className="animate-slide-in-up" style={{ animationDelay: '400ms' }}>
+        <button
+          onClick={handleDemoLogin}
+          disabled={demoLoading}
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 border border-blue-300 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group transform hover:scale-[1.02] hover:-translate-y-1"
+        >
+          {demoLoading ? (
+            <div className="animate-spin">
+              <LoadingSpinner size="sm" />
+            </div>
+          ) : (
+            <svg className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          )}
+          <span className="text-blue-700 font-medium group-hover:text-blue-800 transition-colors duration-300">
+            Try Teacher Demo
+          </span>
+        </button>
+      </div>
+
       {/* Welcome Message with Enhanced Animation */}
-      <div className="text-center animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+      <div className="text-center animate-slide-in-up" style={{ animationDelay: '500ms' }}>
         <div className="inline-block">
           <p className="text-sm text-gray-600 leading-relaxed max-w-sm mx-auto">
-            Welcome to EduAIssist! Sign in with your Google account to access your personalized learning dashboard.
+            Welcome to EduAIssist! Sign in with your Google account or try the teacher demo to explore features.
           </p>
         </div>
       </div>
 
       {/* Decorative Elements */}
       <div className="flex justify-center">
-        <div className="flex space-x-2 animate-slide-in-up" style={{ animationDelay: '400ms' }}>
+        <div className="flex space-x-2 animate-slide-in-up" style={{ animationDelay: '600ms' }}>
           <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
           <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
           <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
