@@ -10,7 +10,8 @@ import {
   ArrowRightOnRectangleIcon,
   EyeIcon,
   ArrowDownTrayIcon,
-  BellAlertIcon
+  BellAlertIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline'
 import { classesAPI, materialsAPI, subjectsAPI, examsAPI, questionsAPI } from '@/lib/api'
 import { api } from '@/lib/api'
@@ -335,6 +336,49 @@ function QuestionPapersContent() {
   const [selectedExamId, setSelectedExamId] = useState<string | null>(null)
   const [viewQuestions, setViewQuestions] = useState<any[]>([])
   const [loadingView, setLoadingView] = useState(false)
+  
+  // Delete functionality states
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [examToDelete, setExamToDelete] = useState<any>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  // Delete mutation
+  const deleteMutation = useMutation(async (examId: string) => {
+    return await examsAPI.delete(examId)
+  })
+
+  // Delete handlers
+  function handleDeleteClick(exam: any) {
+    setExamToDelete(exam)
+    setDeleteModalOpen(true)
+  }
+
+  async function handleDeleteConfirm() {
+    if (!examToDelete) return
+    
+    try {
+      setDeleting(true)
+      const t = toast.loading(`Deleting ${examToDelete.title}...`)
+      
+      await deleteMutation.mutateAsync(examToDelete.id)
+      
+      toast.success(`${examToDelete.title} deleted successfully!`, { id: t })
+      setDeleteModalOpen(false)
+      setExamToDelete(null)
+      refetch() // Refresh the list
+    } catch (error: any) {
+      console.error('Failed to delete exam:', error)
+      toast.error('Failed to delete question paper. Please try again.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  function handleDeleteCancel() {
+    setDeleteModalOpen(false)
+    setExamToDelete(null)
+  }
+
   return (
     <div>
       {/* Page Header */}
@@ -367,7 +411,7 @@ function QuestionPapersContent() {
                 <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Class</th>
                 <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Subject</th>
                 <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Total Marks</th>
-                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2" />
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-center text-xs font-medium text-blue-700 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white">
@@ -378,24 +422,33 @@ function QuestionPapersContent() {
                   <td className="border-b border-gray-100 px-3 py-2 text-sm text-gray-700">{e.className ?? e.classId}</td>
                   <td className="border-b border-gray-100 px-3 py-2 text-sm text-gray-700">{e.subjectName ?? e.subjectId}</td>
                   <td className="border-b border-gray-100 px-3 py-2 text-sm text-gray-700">{e.totalMarks}</td>
-                  <td className="border-b border-gray-100 px-3 py-2 text-right text-sm">
-                    <button
-                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-blue-700 ring-1 ring-blue-200 bg-blue-50 hover:bg-blue-100 transition-all duration-200"
-                      onClick={() => {
-                        window.open(`/questions/preview/${e.id}`, '_blank', 'noopener,noreferrer')
-                      }}
-                      title="View Question Paper"
-                      aria-label="View Question Paper"
-                    >
-                      <EyeIcon className="h-4 w-4" />
-                      <span className="sr-only">View</span>
-                    </button>
+                  <td className="border-b border-gray-100 px-3 py-2 text-center text-sm">
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        onClick={() => {
+                          window.open(`/questions/preview/${e.id}`, '_blank', 'noopener,noreferrer')
+                        }}
+                        title="View Question Paper"
+                        aria-label="View Question Paper"
+                        className="p-1.5 text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <EyeIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(e)}
+                        title="Delete Question Paper"
+                        aria-label="Delete Question Paper"
+                        className="p-1.5 text-red-600 hover:text-red-800 transition-colors"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {(!exams || exams.items.length === 0) && (
                 <tr>
-                  <td className="border-b border-gray-100 px-3 py-6 text-sm text-gray-500" colSpan={5}>No question papers found.</td>
+                  <td className="border-b border-gray-100 px-3 py-6 text-sm text-gray-500" colSpan={6}>No question papers found.</td>
                 </tr>
               )}
             </tbody>
@@ -446,6 +499,42 @@ function QuestionPapersContent() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={deleteModalOpen} onClose={handleDeleteCancel}>
+        <div className="p-6">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+            <TrashIcon className="w-6 h-6 text-red-600" />
+          </div>
+          
+          <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+            Delete Question Paper
+          </h3>
+          
+          <p className="text-sm text-gray-500 text-center mb-6">
+            Are you sure you want to delete <strong>"{examToDelete?.title}"</strong>? This action cannot be undone and will also delete all associated questions.
+          </p>
+          
+          <div className="flex gap-3 justify-center">
+            <button
+              type="button"
+              onClick={handleDeleteCancel}
+              disabled={deleting}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
@@ -508,6 +597,16 @@ function UploadStudyMaterialsContent() {
   const [file, setFile] = useState<File | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  
+  // Delete functionality states
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [materialToDelete, setMaterialToDelete] = useState<any>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  // Delete mutation
+  const deleteMutation = useMutation(async (materialId: string) => {
+    return await materialsAPI.deleteStudy(materialId)
+  })
 
   // Subjects should be independent of class selection
   const allSubjects = useMemo(() => {
@@ -577,6 +676,38 @@ function UploadStudyMaterialsContent() {
     }
   }
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'application/pdf': ['.pdf'], 'application/msword': ['.doc'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] }, multiple: false, maxSize: 10 * 1024 * 1024 })
+
+  // Delete handlers
+  function handleDeleteClick(material: any) {
+    setMaterialToDelete(material)
+    setDeleteModalOpen(true)
+  }
+
+  async function handleDeleteConfirm() {
+    if (!materialToDelete) return
+    
+    try {
+      setDeleting(true)
+      const t = toast.loading(`Deleting ${materialToDelete.originalName}...`)
+      
+      await deleteMutation.mutateAsync(materialToDelete.id)
+      
+      toast.success(`${materialToDelete.originalName} deleted successfully!`, { id: t })
+      setDeleteModalOpen(false)
+      setMaterialToDelete(null)
+      refetch() // Refresh the list
+    } catch (error: any) {
+      console.error('Failed to delete material:', error)
+      toast.error('Failed to delete study material. Please try again.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  function handleDeleteCancel() {
+    setDeleteModalOpen(false)
+    setMaterialToDelete(null)
+  }
 
   return (
     <div>
@@ -652,8 +783,7 @@ function UploadStudyMaterialsContent() {
                 <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Class</th>
                 <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Subject</th>
                 <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">File name</th>
-                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2" />
-                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2" />
+                <th className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 text-center text-xs font-medium text-blue-700 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white">
@@ -663,28 +793,36 @@ function UploadStudyMaterialsContent() {
                   <td className="border-b border-gray-100 px-3 py-2 text-sm text-gray-700">{m.class ?? '-'}</td>
                   <td className="border-b border-gray-100 px-3 py-2 text-sm text-gray-700">{m.subject ?? '-'}</td>
                   <td className="border-b border-gray-100 px-3 py-2 text-sm text-gray-700">{m.originalName ?? '-'}</td>
-                  <td className="border-b border-gray-100 px-3 py-2 text-right text-sm">
-                    <a
-                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-blue-700 ring-1 ring-blue-200 bg-blue-50 hover:bg-blue-100 mr-2 transition-all duration-200"
-                      href={m.pdfCloudUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      title="View Study Material"
-                      aria-label="View Study Material"
-                    >
-                      <EyeIcon className="h-4 w-4" />
-                      <span className="sr-only">View</span>
-                    </a>
-                    <a
-                      href={m.pdfCloudUrl}
-                      download
-                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-indigo-700 ring-1 ring-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-all duration-200"
-                      title="Download Study Material"
-                      aria-label="Download Study Material"
-                    >
-                      <ArrowDownTrayIcon className="h-4 w-4" />
-                      <span className="sr-only">Download</span>
-                    </a>
+                  <td className="border-b border-gray-100 px-3 py-2 text-center text-sm">
+                    <div className="flex items-center justify-center gap-3">
+                      <a
+                        href={m.pdfCloudUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="View Study Material"
+                        aria-label="View Study Material"
+                        className="p-1.5 text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <EyeIcon className="h-5 w-5" />
+                      </a>
+                      <a
+                        href={m.pdfCloudUrl}
+                        download
+                        title="Download Study Material"
+                        aria-label="Download Study Material"
+                        className="p-1.5 text-indigo-600 hover:text-indigo-800 transition-colors"
+                      >
+                        <ArrowDownTrayIcon className="h-5 w-5" />
+                      </a>
+                      <button
+                        onClick={() => handleDeleteClick(m)}
+                        title="Delete Study Material"
+                        aria-label="Delete Study Material"
+                        className="p-1.5 text-red-600 hover:text-red-800 transition-colors"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -703,13 +841,31 @@ function UploadStudyMaterialsContent() {
             <div key={m.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">#{(page - 1) * 10 + idx + 1}</span>
-                <div className="flex gap-2">
-                  <a className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200 bg-indigo-50" href={m.pdfCloudUrl} target="_blank" rel="noreferrer">
-                    <EyeIcon className="h-4 w-4" /> View
+                <div className="flex gap-3">
+                  <a 
+                    href={m.pdfCloudUrl} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    title="View Study Material"
+                    className="p-1.5 text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    <EyeIcon className="h-5 w-5" />
                   </a>
-                  <a className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200" href={m.pdfCloudUrl} download>
-                    <ArrowDownTrayIcon className="h-4 w-4" /> Download
+                  <a 
+                    href={m.pdfCloudUrl} 
+                    download
+                    title="Download Study Material"
+                    className="p-1.5 text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    <ArrowDownTrayIcon className="h-5 w-5" />
                   </a>
+                  <button 
+                    onClick={() => handleDeleteClick(m)}
+                    title="Delete Study Material"
+                    className="p-1.5 text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -821,6 +977,42 @@ function UploadStudyMaterialsContent() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={deleteModalOpen} onClose={handleDeleteCancel}>
+        <div className="p-6">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+            <TrashIcon className="w-6 h-6 text-red-600" />
+          </div>
+          
+          <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+            Delete Study Material
+          </h3>
+          
+          <p className="text-sm text-gray-500 text-center mb-6">
+            Are you sure you want to delete <strong>"{materialToDelete?.originalName}"</strong>? This action cannot be undone.
+          </p>
+          
+          <div className="flex gap-3 justify-center">
+            <button
+              type="button"
+              onClick={handleDeleteCancel}
+              disabled={deleting}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   )

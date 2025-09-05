@@ -70,6 +70,8 @@ export const materialsAPI = {
   listStudy: (params: { class?: string; subject?: string; q?: string; page?: number; limit?: number }) =>
     api.get('/materials/study', { params: { ...params, _t: Date.now() } }),
   count: () => api.get('/materials/count'),
+  getStudy: (id: string) => api.get(`/materials/study/${id}`),
+  deleteStudy: (id: string) => api.delete(`/materials/study/${id}`),
 }
 
 export const questionsAPI = {
@@ -97,4 +99,6 @@ export const questionsAPI = {
 export const examsAPI = {
   list: (params: { q?: string; page?: number; limit?: number }) => api.get('/exams', { params }),
   count: () => api.get('/exams/count'),
+  getOne: (id: string) => api.get(`/exams/${id}`),
+  delete: (id: string) => api.delete(`/exams/${id}`),
 }
