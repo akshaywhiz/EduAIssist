@@ -11,7 +11,8 @@ import {
   EyeIcon,
   ArrowDownTrayIcon,
   BellAlertIcon,
-  TrashIcon
+  TrashIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline'
 import { classesAPI, materialsAPI, subjectsAPI, examsAPI, questionsAPI } from '@/lib/api'
 import { api } from '@/lib/api'
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Dashboard', href: '#', icon: ChartBarIcon, current: true },
   { name: 'Question Papers', href: '#questions', icon: DocumentTextIcon, current: false },
   { name: 'Study Materials', href: '#upload-study', icon: DocumentArrowUpIcon, current: false },
+  { name: 'Answer Sheet Management', href: '#answer-sheets', icon: ClipboardDocumentListIcon, current: false, disabled: true, comingSoon: true },
 ]
 
 export function TeacherDashboard() {
@@ -70,35 +72,52 @@ export function TeacherDashboard() {
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navigation.map((item) => (
-              <button
-                key={item.name}
-                onClick={async () => {
-                  const newTab = item.href.replace("#", "") || "dashboard";
-                  if (newTab !== activeTab) {
-                    setIsTransitioning(true);
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    setActiveTab(newTab);
-                    setIsTransitioning(false);
-                  }
-                  // Close mobile menu on navigation
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 shadow-sm hover:shadow-md group transform hover:scale-[1.02]
-                  ${
-                    activeTab === (item.href.replace("#", "") || "dashboard")
+              <div key={item.name} className="relative">
+                <button
+                  onClick={async () => {
+                    if (item.disabled) return; // Prevent navigation if disabled
+                    const newTab = item.href.replace("#", "") || "dashboard";
+                    if (newTab !== activeTab) {
+                      setIsTransitioning(true);
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                      setActiveTab(newTab);
+                      setIsTransitioning(false);
+                    }
+                    // Close mobile menu on navigation
+                    setIsMobileMenuOpen(false);
+                  }}
+                  disabled={item.disabled}
+                  className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 shadow-sm group transform ${
+                    item.disabled 
+                      ? "cursor-not-allowed opacity-60" 
+                      : "hover:shadow-md hover:scale-[1.02]"
+                  } ${
+                    activeTab === (item.href.replace("#", "") || "dashboard") && !item.disabled
                       ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+                      : item.disabled
+                      ? "text-gray-400 bg-gray-50/50"
                       : "text-gray-600 hover:bg-white/80 hover:shadow-lg"
                   }`}
-              >
-                <item.icon 
-                  className={`mr-3 h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${
-                    activeTab === (item.href.replace("#", "") || "dashboard")
-                      ? "text-white"
-                      : "text-gray-500 group-hover:text-blue-600"
-                  }`} 
-                />
-                {item.name}
-              </button>
+                >
+                  <item.icon 
+                    className={`mr-3 h-5 w-5 transition-transform duration-300 ${
+                      !item.disabled && "group-hover:scale-110"
+                    } ${
+                      activeTab === (item.href.replace("#", "") || "dashboard") && !item.disabled
+                        ? "text-white"
+                        : item.disabled
+                        ? "text-gray-400"
+                        : "text-gray-500 group-hover:text-blue-600"
+                    }`} 
+                  />
+                  <div className="flex-1 text-left">
+                    {item.name}
+                    {item.comingSoon && (
+                      <div className="text-xs text-gray-400 mt-0.5">Coming Soon</div>
+                    )}
+                  </div>
+                </button>
+              </div>
             ))}
           </nav>
 
@@ -187,6 +206,84 @@ function DashboardContent() {
     return res.data.total as number
   })
 
+  // Fetch recent activities data
+  const { data: recentExams, isLoading: examsLoading } = useQuery(['recent-exams'], async () => {
+    const res = await examsAPI.list({ page: 1, limit: 3 })
+    return res.data.items || []
+  }, {
+    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 10000 // Consider data stale after 10 seconds
+  })
+
+  const { data: recentMaterials, isLoading: materialsLoading } = useQuery(['recent-materials'], async () => {
+    const res = await materialsAPI.listStudy({ page: 1, limit: 3 })
+    return res.data.items || []
+  }, {
+    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 10000 // Consider data stale after 10 seconds
+  })
+
+  const isLoadingActivities = examsLoading || materialsLoading
+
+  // Combine and format recent activities
+  const recentActivities = useMemo(() => {
+    const activities: Array<{
+      id: string
+      type: 'exam' | 'material'
+      title: string
+      description: string
+      timestamp: Date
+      color: string
+    }> = []
+
+    // Add recent exams
+    if (recentExams) {
+      recentExams.forEach((exam: any, index: number) => {
+        const colors = ['bg-blue-400', 'bg-green-400', 'bg-purple-400']
+        activities.push({
+          id: `exam-${exam.id}`,
+          type: 'exam',
+          title: exam.title,
+          description: `Generated "${exam.title}" question paper${exam.className ? ` for ${exam.className}` : ''}${exam.subjectName ? ` - ${exam.subjectName}` : ''}`,
+          timestamp: new Date(exam.createdAt || exam.updatedAt || Date.now()),
+          color: colors[index % colors.length]
+        })
+      })
+    }
+
+    // Add recent materials
+    if (recentMaterials) {
+      recentMaterials.forEach((material: any, index: number) => {
+        const colors = ['bg-indigo-400', 'bg-pink-400', 'bg-teal-400']
+        activities.push({
+          id: `material-${material.id}`,
+          type: 'material',
+          title: material.originalName || 'Study Material',
+          description: `Uploaded "${material.originalName || 'study material'}"${material.class ? ` for ${material.class}` : ''}${material.subject ? ` - ${material.subject}` : ''}`,
+          timestamp: new Date(material.createdAt || material.uploadedAt || Date.now()),
+          color: colors[index % colors.length]
+        })
+      })
+    }
+
+    // Sort by timestamp (most recent first) and take top 5
+    return activities
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 5)
+  }, [recentExams, recentMaterials])
+
+  // Format relative time
+  const formatRelativeTime = (date: Date) => {
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return 'Just now'
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`
+    return date.toLocaleDateString()
+  }
+
   return (
     <div>
       {/* Page Header */}
@@ -258,29 +355,36 @@ function DashboardContent() {
             <h3 className="text-lg font-semibold text-gray-900">Recent Activities</h3>
           </div>
           <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
-              <div className="min-w-0 flex-1">
-              <p className="text-sm text-gray-600">Generated Physics question paper</p>
-              <span className="text-xs text-gray-400">3h ago</span>
+            {isLoadingActivities ? (
+              // Loading skeleton
+              Array.from({ length: 3 }).map((_, index) => (
+                <div key={`loading-${index}`} className="flex items-start space-x-3 animate-pulse">
+                  <div className="flex-shrink-0 w-2 h-2 bg-gray-300 rounded-full mt-2"></div>
+                  <div className="min-w-0 flex-1">
+                    <div className="h-4 bg-gray-200 rounded mb-1"></div>
+                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+              ))
+            ) : recentActivities.length > 0 ? (
+              recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-start space-x-3">
+                  <div className={`flex-shrink-0 w-2 h-2 ${activity.color} rounded-full mt-2`}></div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-600">{activity.description}</p>
+                    <span className="text-xs text-gray-400">{formatRelativeTime(activity.timestamp)}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <ClipboardDocumentCheckIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">No recent activities</p>
+                  <p className="text-xs text-gray-400">Start creating question papers or uploading materials</p>
+                </div>
               </div>
-            </div>
-            
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-indigo-400 rounded-full mt-2"></div>
-              <div className="min-w-0 flex-1">
-              <p className="text-sm text-gray-600">Uploaded Chapter 5 materials</p>
-              <span className="text-xs text-gray-400">5h ago</span>
-              </div>
-            </div>
-            
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-gray-600">Created Math worksheet for Class 9-B</p>
-                <span className="text-xs text-gray-400">1d ago</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -709,6 +813,62 @@ function UploadStudyMaterialsContent() {
     setMaterialToDelete(null)
   }
 
+  // Handle proper file download
+  const handleDownload = async (material: any) => {
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading(`Preparing download for ${material.originalName}...`)
+      
+      // Use a more reliable approach for cloud storage files
+      // First, try to fetch through our backend proxy (if available)
+      try {
+        const response = await api.get(`/materials/download/${material.id}`, {
+          responseType: 'blob'
+        })
+        
+        // Create blob URL and download
+        const blob = new Blob([response.data], { type: 'application/pdf' })
+        const url = window.URL.createObjectURL(blob)
+        
+        const link = document.createElement('a')
+        link.href = url
+        link.download = material.originalName || 'study-material.pdf'
+        link.style.display = 'none'
+        
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        
+        // Clean up
+        window.URL.revokeObjectURL(url)
+        
+        toast.success(`Downloaded ${material.originalName}`, { id: loadingToast })
+      } catch (backendError) {
+        // Fallback: direct download attempt
+        console.log('Backend download failed, trying direct download:', backendError)
+        
+        const link = document.createElement('a')
+        link.href = material.pdfCloudUrl
+        link.download = material.originalName || 'study-material.pdf'
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
+        link.style.display = 'none'
+        
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        
+        toast.success(`Download initiated for ${material.originalName}`, { id: loadingToast })
+      }
+    } catch (error) {
+      console.error('Download failed:', error)
+      toast.error('Download failed. Opening file in new tab instead.')
+      
+      // Final fallback: open in new tab
+      window.open(material.pdfCloudUrl, '_blank', 'noopener,noreferrer')
+    }
+  }
+
   return (
     <div>
       {/* Page Header */}
@@ -805,15 +965,14 @@ function UploadStudyMaterialsContent() {
                       >
                         <EyeIcon className="h-5 w-5" />
                       </a>
-                      <a
-                        href={m.pdfCloudUrl}
-                        download
+                      <button
+                        onClick={() => handleDownload(m)}
                         title="Download Study Material"
                         aria-label="Download Study Material"
                         className="p-1.5 text-indigo-600 hover:text-indigo-800 transition-colors"
                       >
                         <ArrowDownTrayIcon className="h-5 w-5" />
-                      </a>
+                      </button>
                       <button
                         onClick={() => handleDeleteClick(m)}
                         title="Delete Study Material"
@@ -851,14 +1010,13 @@ function UploadStudyMaterialsContent() {
                   >
                     <EyeIcon className="h-5 w-5" />
                   </a>
-                  <a 
-                    href={m.pdfCloudUrl} 
-                    download
+                  <button 
+                    onClick={() => handleDownload(m)}
                     title="Download Study Material"
                     className="p-1.5 text-indigo-600 hover:text-indigo-800 transition-colors"
                   >
                     <ArrowDownTrayIcon className="h-5 w-5" />
-                  </a>
+                  </button>
                   <button 
                     onClick={() => handleDeleteClick(m)}
                     title="Delete Study Material"

@@ -92,6 +92,7 @@ export const questionsAPI = {
     api.post(`/questions/generate/${examId}`, payload),
   byExam: (examId: string) => api.get(`/questions/by-exam/${examId}`),
   pdf: (examId: string) => api.get(`/questions/pdf/${examId}`, { responseType: 'blob' }),
+  pdfPreview: (examId: string) => api.get(`/questions/pdf/preview/${examId}`, { responseType: 'blob' }),
   update: (id: string, body: any) => api.post(`/questions/update/${id}`, body),
   regenerate: (id: string) => api.post(`/questions/regenerate/${id}`, {}),
 }
