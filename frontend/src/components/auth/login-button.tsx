@@ -30,7 +30,17 @@ export function LoginButton() {
       })
 
       if (!response.ok) {
-        throw new Error('Demo login failed')
+        // Try to get the error message from the response
+        let errorMessage = 'Demo login failed. Please try again.'
+        try {
+          const errorData = await response.json()
+          if (errorData.message) {
+            errorMessage = errorData.message
+          }
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError)
+        }
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()
@@ -40,9 +50,10 @@ export function LoginButton() {
       } else {
         throw new Error('No access token received')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Demo login failed:', error)
-      toast.error('Demo login failed. Please try again.')
+      const errorMessage = error.message || 'Demo login failed. Please try again.'
+      toast.error(errorMessage)
     } finally {
       setDemoLoading(false)
     }

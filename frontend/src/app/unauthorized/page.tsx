@@ -157,9 +157,9 @@ export default function UnauthorizedPage() {
 
           {/* Message */}
           <p className="mb-8 text-gray-600 leading-relaxed text-base sm:text-lg animate-slide-in-up" style={{ animationDelay: '0.4s' }}>
-            Sorry, your account is not authorized to access 
+            Your account has been deactivated or you are not authorized to access 
             <span className="font-medium text-gray-800"> EduAIssist</span>. 
-            This platform is only available to registered teachers and administrators.
+            Please contact your administrator for assistance.
           </p>
 
           {/* Additional info */}
@@ -169,10 +169,10 @@ export default function UnauthorizedPage() {
                 <AcademicCapIcon className="h-5 w-5 text-blue-600" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-900 mb-1">Need Access?</p>
+                <p className="text-sm font-medium text-gray-900 mb-1">Account Deactivated?</p>
                 <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                  Contact your school administrator to request access to the platform. 
-                  Make sure your account has the appropriate permissions.
+                  If your account has been deactivated, contact your administrator to reactivate it. 
+                  If you believe this is an error, please reach out for assistance.
                 </p>
               </div>
             </div>

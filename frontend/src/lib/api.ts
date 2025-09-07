@@ -61,7 +61,12 @@ export const classesAPI = {
 }
 
 export const subjectsAPI = {
-  getAll: () => api.get('/subjects'),
+  getAll: (q?: string) => api.get('/subjects', { params: q ? { q } : {} }),
+  getOne: (id: string) => api.get(`/subjects/${id}`),
+  create: (data: any) => api.post('/subjects', data),
+  update: (id: string, data: any) => api.patch(`/subjects/${id}`, data),
+  delete: (id: string) => api.delete(`/subjects/${id}`),
+  count: () => api.get('/subjects/count'),
 }
 
 export const materialsAPI = {

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { usersAPI, classesAPI } from "@/lib/api";
+import { usersAPI, classesAPI, subjectsAPI } from "@/lib/api";
 import { Logo } from "@/components/ui/logo";
+import { SubjectsContent } from "./subjects-content";
 import Cookies from "js-cookie";
 import toast from 'react-hot-toast';
 import {
@@ -17,6 +18,7 @@ import {
   MagnifyingGlassIcon,
   TrashIcon,
   PencilIcon,
+  BookOpenIcon,
 } from "@heroicons/react/24/outline";
 
 
@@ -27,6 +29,7 @@ const navigation = [
   { name: "Dashboard", href: "#", icon: ChartBarIcon, current: true },
   { name: "Teachers", href: "#teachers", icon: UserGroupIcon, current: false },
   { name: "Classes", href: "#classes", icon: AcademicCapIcon, current: false },
+  { name: "Subjects", href: "#subjects", icon: BookOpenIcon, current: false },
 ];
 
 // -------------------------
@@ -166,6 +169,7 @@ export function AdminDashboard() {
             {activeTab === "dashboard" && <DashboardContent />}
             {activeTab === "teachers" && <TeachersContent />}
             {activeTab === "classes" && <ClassesContent />}
+            {activeTab === "subjects" && <SubjectsContent />}
             </div>
           </div>
         </main>
@@ -331,6 +335,7 @@ function TeachersContent() {
     lastName: "",
     email: "",
     role: "teacher",
+    isActive: true,
   });
   const [updating, setUpdating] = useState(false);
 
@@ -340,6 +345,7 @@ function TeachersContent() {
     lastName: "",
     email: "",
     role: "teacher",
+    isActive: true,
   });
 
   useEffect(() => {
@@ -409,6 +415,7 @@ function TeachersContent() {
       lastName: teacher.lastName,
       email: teacher.email,
       role: teacher.role,
+      isActive: teacher.isActive ?? true,
     });
     setEditModalOpen(true);
   }
@@ -422,7 +429,7 @@ function TeachersContent() {
       await loadTeachers();
       setEditModalOpen(false);
       setTeacherToEdit(null);
-      setEditForm({ firstName: "", lastName: "", email: "", role: "teacher" });
+      setEditForm({ firstName: "", lastName: "", email: "", role: "teacher", isActive: true });
       toast.success(`Teacher ${editForm.firstName} ${editForm.lastName} updated successfully!`);
     } catch (err) {
       console.error('Failed to update teacher:', err);
@@ -435,14 +442,14 @@ function TeachersContent() {
   function handleEditCancel() {
     setEditModalOpen(false);
     setTeacherToEdit(null);
-    setEditForm({ firstName: "", lastName: "", email: "", role: "teacher" });
+    setEditForm({ firstName: "", lastName: "", email: "", role: "teacher", isActive: true });
   }
 
   async function addTeacher() {
     try {
       setSubmitting(true);
       await usersAPI.create(form);
-      setForm({ firstName: "", lastName: "", email: "", role: "teacher" });
+      setForm({ firstName: "", lastName: "", email: "", role: "teacher", isActive: true });
       loadTeachers();
       toast.success('Teacher added successfully!');
     } catch (err) {
@@ -539,6 +546,30 @@ function TeachersContent() {
                 required
               />
         </div>
+
+            {/* Status - Toggle Switch */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Account Status
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  Active teachers can log in and access the platform
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <span className="ml-3 text-sm font-medium text-gray-700">
+                  {form.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </label>
+            </div>
 
         <button
           onClick={addTeacher}
@@ -809,6 +840,30 @@ function TeachersContent() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Email Address"
                       />
+                    </div>
+                    
+                    {/* Status - Toggle Switch */}
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          Account Status
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Active teachers can log in and access the platform
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editForm.isActive}
+                          onChange={(e) => setEditForm({...editForm, isActive: e.target.checked})}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <span className="ml-3 text-sm font-medium text-gray-700">
+                          {editForm.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </label>
                     </div>
                   </div>
                 </div>
